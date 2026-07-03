@@ -5,11 +5,11 @@
 package com.bapelauto.world;
 
 import com.bapelauto.ShardedConfigManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 
 public class WorldInteractionManager {
     private boolean leftClickEnabled = false;
@@ -23,7 +23,7 @@ public class WorldInteractionManager {
     
     private int totalClicks = 0;
     
-    public void tick(MinecraftClient client) {
+    public void tick(Minecraft client) {
         if (client.player == null || client.world == null) return;
         
         long currentTime = System.currentTimeMillis();
@@ -39,11 +39,11 @@ public class WorldInteractionManager {
         }
     }
     
-    private void performLeftClick(MinecraftClient client) {
+    private void performLeftClick(Minecraft client) {
         if (client.interactionManager == null || client.player == null) return;
         
         try {
-            client.player.swingHand(Hand.MAIN_HAND);
+            client.player.swingHand(InteractionHand.MAIN_HAND);
             if (client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.ENTITY) {
                 client.interactionManager.attackEntity(client.player, ((EntityHitResult)client.crosshairTarget).getEntity());
             } else if (client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
@@ -56,19 +56,19 @@ public class WorldInteractionManager {
         }
     }
     
-    private void performRightClick(MinecraftClient client) {
+    private void performRightClick(Minecraft client) {
         if (client.interactionManager == null || client.player == null) return;
         
         try {
             boolean actionTaken = false;
             if (client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
-                if (client.interactionManager.interactBlock(client.player, Hand.MAIN_HAND, (BlockHitResult)client.crosshairTarget).isAccepted()) {
-                    client.player.swingHand(Hand.MAIN_HAND);
+                if (client.interactionManager.interactBlock(client.player, InteractionHand.MAIN_HAND, (BlockHitResult)client.crosshairTarget).isAccepted()) {
+                    client.player.swingHand(InteractionHand.MAIN_HAND);
                     actionTaken = true;
                 }
             }
             if (!actionTaken) {
-                client.interactionManager.interactItem(client.player, Hand.MAIN_HAND);
+                client.interactionManager.interactItem(client.player, InteractionHand.MAIN_HAND);
             }
             totalClicks++;
         } catch (Exception e) {

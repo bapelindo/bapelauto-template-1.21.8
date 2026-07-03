@@ -5,12 +5,12 @@
 package com.bapelauto.smart;
 
 import com.bapelauto.click.ClickTarget;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screen.ingame.*;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,14 +73,14 @@ public class SmartDetector {
     /**
      * Auto-detect and suggest click targets based on GUI type
      */
-    public static List<ClickTarget> autoDetectTargets(MinecraftClient client) {
+    public static List<ClickTarget> autoDetectTargets(Minecraft client) {
         List<ClickTarget> targets = new ArrayList<>();
         
-        if (!(client.currentScreen instanceof HandledScreen)) {
+        if (!(client.currentScreen instanceof AbstractContainerScreen)) {
             return targets;
         }
         
-        HandledScreen<?> screen = (HandledScreen<?>) client.currentScreen;
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
         GuiType guiType = detectGuiType(screen);
         
         switch (guiType) {
@@ -107,7 +107,7 @@ public class SmartDetector {
         
         if (client.player != null && !targets.isEmpty()) {
             client.player.sendMessage(
-                Text.literal("§a[Smart Detect] Found " + targets.size() + " targets in " + guiType.getDisplayName()),
+                Component.literal("§a[Smart Detect] Found " + targets.size() + " targets in " + guiType.getDisplayName()),
                 true
             );
             client.player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5F, 1.5F);
@@ -116,7 +116,7 @@ public class SmartDetector {
         return targets;
     }
     
-    private static List<ClickTarget> detectChestPattern(HandledScreen<?> screen) {
+    private static List<ClickTarget> detectChestPattern(AbstractContainerScreen<?> screen) {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Detect all container slots (not player inventory)
@@ -133,7 +133,7 @@ public class SmartDetector {
         return targets;
     }
     
-    private static List<ClickTarget> detectFurnacePattern(HandledScreen<?> screen) {
+    private static List<ClickTarget> detectFurnacePattern(AbstractContainerScreen<?> screen) {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Furnace slots: 0=input, 1=fuel, 2=output
@@ -145,7 +145,7 @@ public class SmartDetector {
         return targets;
     }
     
-    private static List<ClickTarget> detectCraftingPattern(HandledScreen<?> screen) {
+    private static List<ClickTarget> detectCraftingPattern(AbstractContainerScreen<?> screen) {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Crafting output slot (slot 0 in crafting table)
@@ -156,7 +156,7 @@ public class SmartDetector {
         return targets;
     }
     
-    private static List<ClickTarget> detectMerchantPattern(HandledScreen<?> screen) {
+    private static List<ClickTarget> detectMerchantPattern(AbstractContainerScreen<?> screen) {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Merchant result slot (slot 2)
@@ -167,7 +167,7 @@ public class SmartDetector {
         return targets;
     }
     
-    private static List<ClickTarget> detectEnchantingPattern(HandledScreen<?> screen) {
+    private static List<ClickTarget> detectEnchantingPattern(AbstractContainerScreen<?> screen) {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Enchanting slots: 0=item, 1=lapis
@@ -176,7 +176,7 @@ public class SmartDetector {
         return targets;
     }
     
-    private static List<ClickTarget> detectGenericPattern(HandledScreen<?> screen) {
+    private static List<ClickTarget> detectGenericPattern(AbstractContainerScreen<?> screen) {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Detect all slots with items
@@ -229,22 +229,22 @@ public class SmartDetector {
     /**
      * Auto-configure based on detected GUI
      */
-    public static void autoConfigureForGui(MinecraftClient client, GuiType guiType) {
+    public static void autoConfigureForGui(Minecraft client, GuiType guiType) {
         if (client.player == null) return;
         
         String pattern = suggestTimingPattern(guiType);
         long[] delays = suggestDelays(guiType);
         
         client.player.sendMessage(
-            Text.literal("§e[Smart Config] Recommended settings for " + guiType.getDisplayName()),
+            Component.literal("§e[Smart Config] Recommended settings for " + guiType.getDisplayName()),
             false
         );
         client.player.sendMessage(
-            Text.literal("§7Pattern: §f" + pattern + " §7| Delay: §f" + delays[0] + "ms"),
+            Component.literal("§7Pattern: §f" + pattern + " §7| Delay: §f" + delays[0] + "ms"),
             false
         );
         client.player.sendMessage(
-            Text.literal("§7Suggestion: §f" + guiType.getSuggestion()),
+            Component.literal("§7Suggestion: §f" + guiType.getSuggestion()),
             false
         );
     }

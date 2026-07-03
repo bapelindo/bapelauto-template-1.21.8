@@ -4,9 +4,9 @@
 // ============================================
 package com.bapelauto.conditional;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,10 +82,10 @@ public class ConditionalAction {
     /**
      * Check if condition is met
      */
-    public boolean checkCondition(MinecraftClient client) {
+    public boolean checkCondition(Minecraft client) {
         if (client.player == null) return false;
         
-        PlayerEntity player = client.player;
+        Player player = client.player;
         long currentTime = System.currentTimeMillis();
         
         // Cooldown check
@@ -138,7 +138,7 @@ public class ConditionalAction {
     /**
      * Execute the action
      */
-    public void executeAction(MinecraftClient client) {
+    public void executeAction(Minecraft client) {
         if (client.player == null) return;
         
         lastTriggeredTime = System.currentTimeMillis();
@@ -156,17 +156,17 @@ public class ConditionalAction {
                 
             case SEND_MESSAGE:
                 if (actionData != null) {
-                    client.player.sendMessage(net.minecraft.text.Text.literal("§e[Auto] " + actionData), false);
+                    client.player.sendMessage(net.minecraft.network.chat.Component.literal("§e[Auto] " + actionData), false);
                 }
                 break;
                 
             case PLAY_SOUND:
-                client.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
+                client.player.playSound(net.minecraft.sounds.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
                 break;
                 
             case STOP_BOT:
                 // This would need to call AutoBotMod to disable
-                client.player.sendMessage(net.minecraft.text.Text.literal("§c[Auto] Bot stopped by condition: " + description), true);
+                client.player.sendMessage(net.minecraft.network.chat.Component.literal("§c[Auto] Bot stopped by condition: " + description), true);
                 break;
                 
             default:
@@ -177,13 +177,13 @@ public class ConditionalAction {
     /**
      * Tick - check and execute if condition met
      */
-    public void tick(MinecraftClient client) {
+    public void tick(Minecraft client) {
         if (checkCondition(client)) {
             executeAction(client);
         }
     }
     
-    private boolean isInventoryFull(PlayerEntity player) {
+    private boolean isInventoryFull(Player player) {
         for (int i = 0; i < player.getInventory().size(); i++) {
             ItemStack stack = player.getInventory().getStack(i);
             if (stack.isEmpty()) {
@@ -193,7 +193,7 @@ public class ConditionalAction {
         return true;
     }
     
-    private boolean isInventoryEmpty(PlayerEntity player) {
+    private boolean isInventoryEmpty(Player player) {
         for (int i = 0; i < player.getInventory().size(); i++) {
             ItemStack stack = player.getInventory().getStack(i);
             if (!stack.isEmpty()) {
@@ -238,7 +238,7 @@ class ConditionalActionManager {
         actions.clear();
     }
     
-    public void tick(MinecraftClient client) {
+    public void tick(Minecraft client) {
         for (ConditionalAction action : actions) {
             action.tick(client);
         }

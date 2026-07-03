@@ -1,6 +1,24 @@
 // ============================================
-// FILE: AutoBotMod.java (FIXED GLFW CRASH)
+// FILE: AutoBotMod.java (FIXED GLFW CRASH + PORTED TO 26.1.2)
 // Path: src/main/java/com/bapelauto/AutoBotMod.java
+//
+// Key changes from the 1.21.x version:
+//   - KeyBindingHelper (net.fabricmc.fabric.api.client.keybinding.v1)
+//     -> KeyMappingHelper (net.fabricmc.fabric.api.client.keymapping.v1),
+//     registerKeyBinding(...) -> registerKeyMapping(...)
+//     (confirmed rename, Fabric API 26.1 porting guide)
+//   - client.interactionManager -> client.gameMode (Mojang mapping name)
+//   - player.networkHandler -> player.connection (Mojang mapping name)
+//   - connection.sendChatCommand(...) -> connection.sendCommand(...)
+//   - connection.sendChatMessage(...) -> connection.sendChat(...)
+//   - player.sendMessage(...) -> player.displayClientMessage(...)
+//   - client.currentScreen is unchanged (still the correct Mojang field
+//     name in 26.1, confirmed via Fabric's own docs example).
+//
+// NOTE: ScreenEvents / ScreenKeyboardEvents were not in Fabric API's
+// published 26.1 rename list, so their names are kept as-is - but I
+// could not verify this against a live build. If your IDE flags these,
+// check the Fabric API 26.1 porting guide for the current names.
 // ============================================
 package com.bapelauto;
 
@@ -21,25 +39,25 @@ import com.bapelauto.slimefun.SlimefunConfigScreen;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.text.Text;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.InputConstants;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AutoBotMod implements ClientModInitializer {
-    
+
     public static final String MOD_ID = "bapelauto";
-    public static final String VERSION = "5.3-FIXED"; // Updated version marker
-    
+    public static final String VERSION = "5.4-PORTED-26.1.2";
+
     // Core Managers
     private static SessionManager sessionManager;
     private static ShardedConfigManager configManager;
@@ -48,42 +66,42 @@ public class AutoBotMod implements ClientModInitializer {
     private static InventoryManager inventoryManager;
     private static RealmTracker realmTracker;
     private static StatsTracker statsTracker;
-    
+
     // Advanced Managers
     private static ProfileManager profileManager;
     private static VisualOverlay visualOverlay;
     private static Scheduler scheduler;
     private static HotkeyManager hotkeyManager;
     private static List<ConditionalAction> conditionalActions;
-    
+
     // Slimefun Manager
     private static SlimefunAutoManager slimefunManager;
-    
+
     // Keybindings
-    private static KeyBinding toggleBotKey;
-    private static KeyBinding openConfigKey;
-    private static KeyBinding captureTargetKey;
-    private static KeyBinding toggleTargetKey;
-    private static KeyBinding recordMacroKey;
-    private static KeyBinding stopRecordingKey;
-    private static KeyBinding smartDetectKey;
-    private static KeyBinding cycleProfileKey;
-    private static KeyBinding toggleOverlayKey;
-    private static KeyBinding emergencyStopKey;
-    private static KeyBinding slimefunQuickSetupKey;
-    private static KeyBinding openSlimefunConfigKey;
-    
+    private static KeyMapping toggleBotKey;
+    private static KeyMapping openConfigKey;
+    private static KeyMapping captureTargetKey;
+    private static KeyMapping toggleTargetKey;
+    private static KeyMapping recordMacroKey;
+    private static KeyMapping stopRecordingKey;
+    private static KeyMapping smartDetectKey;
+    private static KeyMapping cycleProfileKey;
+    private static KeyMapping toggleOverlayKey;
+    private static KeyMapping emergencyStopKey;
+    private static KeyMapping slimefunQuickSetupKey;
+    private static KeyMapping openSlimefunConfigKey;
+
     // Status & Flags
     private static boolean botRunning = false;
     private boolean hotkeysInitialized = false; // Flag for lazy init
-    
+
     // Basic configs
     private static boolean commandEnabled = false;
     private static boolean showGuiButtons = true;
     private static String command = "/sell all";
     private static long commandDelay = 60000;
     private static long lastCommandTime = Long.MAX_VALUE;
-    
+
     @Override
     public void onInitializeClient() {
         System.out.println("[AutoBot] Starting initialization sequence...");
@@ -92,10 +110,10 @@ public class AutoBotMod implements ClientModInitializer {
             sessionManager = new SessionManager();
             configManager = new ShardedConfigManager(sessionManager);
             statsTracker = new StatsTracker();
-            
+
             // 2. Initialize Logic Managers
-            guiClickManager = new GuiClickManager(); 
-            visualOverlay = new VisualOverlay(); 
+            guiClickManager = new GuiClickManager();
+            visualOverlay = new VisualOverlay();
             worldManager = new WorldInteractionManager();
             inventoryManager = new InventoryManager();
             realmTracker = new RealmTracker(sessionManager, configManager);
@@ -104,31 +122,31 @@ public class AutoBotMod implements ClientModInitializer {
             conditionalActions = new ArrayList<>();
             slimefunManager = new SlimefunAutoManager();
             profileManager = new ProfileManager(configManager);
-            
+
             // 3. Load Configuration
             loadConfiguration();
-            
+
             // NOTE: initializeDefaultHotkeys() removed from here to prevent GLFW crash
-            
+
             System.out.println("[AutoBot v" + VERSION + "] CORE MANAGERS READY");
-            
+
             // 4. Register Keybindings (Safe to do here as they are just registration)
             registerKeybindings();
-            
+
             // 5. Register Events
             registerEvents();
-            
+
             System.out.println("[AutoBot v" + VERSION + "] PRE-INIT COMPLETE");
-            
+
             // Shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
-            
+
         } catch (Exception e) {
             System.err.println("[AutoBot] FATAL ERROR: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
+
     private void loadConfiguration() {
         try {
             // Safety Init
@@ -143,26 +161,26 @@ public class AutoBotMod implements ClientModInitializer {
             showGuiButtons = configManager.getBoolean("showGuiButtons", true);
             command = configManager.getString("command", "/sell all");
             commandDelay = configManager.getLong("commandDelay", 60000);
-            
+
             worldManager.loadFromConfig(configManager);
             inventoryManager.loadFromConfig(configManager);
-            
+
             long baseDelay = configManager.getLong("targetClickDelay", 100);
             guiClickManager.setBaseDelay(baseDelay);
-            
+
             try {
                 String patternStr = configManager.getString("timingPattern", "FIXED");
                 guiClickManager.setTimingPattern(TimingPattern.valueOf(patternStr));
             } catch (Exception e) {
                 guiClickManager.setTimingPattern(TimingPattern.FIXED);
             }
-            
+
             visualOverlay.setEnabled(configManager.getBoolean("overlayEnabled", true));
             visualOverlay.setShowStats(configManager.getBoolean("overlayShowStats", true));
-            
+
             slimefunManager.setSlimefunModeEnabled(configManager.getBoolean("slimefunModeEnabled", false));
             slimefunManager.setSafetyMode(configManager.getBoolean("slimefunSafetyMode", true));
-            
+
         } catch (Exception e) {
             System.err.println("[AutoBot] Config load error (non-fatal): " + e.getMessage());
         }
@@ -170,48 +188,48 @@ public class AutoBotMod implements ClientModInitializer {
 
     private void registerKeybindings() {
         // Core
-        toggleBotKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.toggle", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_0, "category.bapelauto"));
-        openConfigKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.config", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_HOME, "category.bapelauto"));
-        captureTargetKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.capture", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, "category.bapelauto"));
-        toggleTargetKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.activate_target", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, "category.bapelauto"));
-        recordMacroKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.record", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_BRACKET, "category.bapelauto"));
-        stopRecordingKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.stop_record", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, "category.bapelauto"));
-        
+        toggleBotKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.toggle", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_0, "category.bapelauto"));
+        openConfigKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_HOME, "category.bapelauto"));
+        captureTargetKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.capture", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, "category.bapelauto"));
+        toggleTargetKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.activate_target", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, "category.bapelauto"));
+        recordMacroKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.record", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_BRACKET, "category.bapelauto"));
+        stopRecordingKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.stop_record", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, "category.bapelauto"));
+
         // Advanced
-        smartDetectKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.smart_detect", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_BACKSLASH, "category.bapelauto"));
-        cycleProfileKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.cycle_profile", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_P, "category.bapelauto"));
-        toggleOverlayKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.toggle_overlay", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_O, "category.bapelauto"));
-        emergencyStopKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.emergency_stop", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_END, "category.bapelauto"));
-        
+        smartDetectKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.smart_detect", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_BACKSLASH, "category.bapelauto"));
+        cycleProfileKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.cycle_profile", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_P, "category.bapelauto"));
+        toggleOverlayKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.toggle_overlay", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, "category.bapelauto"));
+        emergencyStopKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.emergency_stop", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_END, "category.bapelauto"));
+
         // Slimefun
-        slimefunQuickSetupKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.slimefun_quick", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, "category.bapelauto.slimefun"));
-        openSlimefunConfigKey = KeyBindingHelper.registerKeyBinding(
-            new KeyBinding("key.bapelauto.slimefun_config", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_INSERT, "category.bapelauto.slimefun"));
+        slimefunQuickSetupKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.slimefun_quick", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, "category.bapelauto.slimefun"));
+        openSlimefunConfigKey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.bapelauto.slimefun_config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_INSERT, "category.bapelauto.slimefun"));
     }
-    
+
     private void registerEvents() {
         ClientTickEvents.END_CLIENT_TICK.register(this::handleTick);
-        
+
         // Safe logic ticks
-        ClientTickEvents.END_CLIENT_TICK.register(client -> { if(realmTracker != null) realmTracker.tick(client); });
-        ClientTickEvents.END_CLIENT_TICK.register(client -> { if(scheduler != null) scheduler.tick(client); });
-        ClientTickEvents.END_CLIENT_TICK.register(client -> { if(slimefunManager != null) slimefunManager.tick(client); });
-        
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { if (realmTracker != null) realmTracker.tick(client); });
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { if (scheduler != null) scheduler.tick(client); });
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { if (slimefunManager != null) slimefunManager.tick(client); });
+
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             ScreenKeyboardEvents.allowKeyPress(screen).register((_screen, key, scancode, modifiers) -> {
                 if (!botRunning) return true;
-                
+
                 // Hotkey interception
                 if (guiClickManager != null) {
                     if (captureTargetKey.matchesKey(key, scancode)) {
@@ -231,30 +249,30 @@ public class AutoBotMod implements ClientModInitializer {
                         return false;
                     }
                 }
-                
+
                 if (smartDetectKey.matchesKey(key, scancode)) {
                     performSmartDetect(client);
                     return false;
                 }
-                
+
                 if (slimefunQuickSetupKey.matchesKey(key, scancode)) {
                     performSlimefunQuickSetup(client);
                     return false;
                 }
-                
+
                 // Custom hotkeys handler
                 if (hotkeyManager != null && hotkeyManager.handleKeyPress(key, client)) {
                     return false;
                 }
-                
+
                 return true;
             });
         });
     }
-    
-    private void handleTick(MinecraftClient client) {
+
+    private void handleTick(Minecraft client) {
         // LAZY INITIALIZATION - Fix for GLFW crash
-        // Kita hanya register hotkey default SETELAH game berjalan dan player ada
+        // Only register default hotkeys AFTER the game is running and the player exists
         if (!hotkeysInitialized && client.player != null) {
             initializeDefaultHotkeys();
             hotkeysInitialized = true;
@@ -262,67 +280,67 @@ public class AutoBotMod implements ClientModInitializer {
         }
 
         if (client.player == null) return;
-        
+
         // Key checks
         if (toggleBotKey.wasPressed()) toggleMaster(client);
         if (openConfigKey.wasPressed()) client.setScreen(new AutoBotConfigScreen(client.currentScreen));
         if (openSlimefunConfigKey.wasPressed()) client.setScreen(new SlimefunConfigScreen(client.currentScreen));
-        
+
         if (smartDetectKey.wasPressed() && client.currentScreen != null) performSmartDetect(client);
         if (slimefunQuickSetupKey.wasPressed() && client.currentScreen != null) performSlimefunQuickSetup(client);
-        
+
         if (cycleProfileKey.wasPressed() && profileManager != null) profileManager.cycleProfile(client);
-        
+
         if (toggleOverlayKey.wasPressed() && visualOverlay != null) {
             visualOverlay.toggleAll();
             String status = visualOverlay.isEnabled() ? "§aON" : "§cOFF";
-            client.player.sendMessage(Text.literal("§e[Overlay] " + status), true);
+            client.player.displayClientMessage(Component.literal("§e[Overlay] " + status), true);
         }
-        
+
         if (emergencyStopKey.wasPressed()) performEmergencyStop(client);
-        
+
         if (botRunning) executeBot(client);
     }
-    
-    private void toggleMaster(MinecraftClient client) {
+
+    private void toggleMaster(Minecraft client) {
         botRunning = !botRunning;
-        
+
         if (botRunning) {
-            if(statsTracker != null) statsTracker.startSession();
+            if (statsTracker != null) statsTracker.startSession();
             lastCommandTime = System.currentTimeMillis();
-            
+
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§a§l[AutoBot] MASTER ON"), true);
+                client.player.displayClientMessage(Component.literal("§a§l[AutoBot] MASTER ON"), true);
                 if (slimefunManager != null && slimefunManager.isInSlimefunGUI(client)) {
-                    client.player.sendMessage(Text.literal("§e[Tip] Press Slimefun quick setup key!"), false);
+                    client.player.displayClientMessage(Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
                 }
                 client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
             }
         } else {
             // Disable all systems
-            if(worldManager != null) worldManager.disableAll();
-            if(inventoryManager != null) inventoryManager.disableAll();
-            if(guiClickManager != null) guiClickManager.clearTargets();
+            if (worldManager != null) worldManager.disableAll();
+            if (inventoryManager != null) inventoryManager.disableAll();
+            if (guiClickManager != null) guiClickManager.clearTargets();
             commandEnabled = false;
-            
+
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§c§l[AutoBot] MASTER OFF"), true);
+                client.player.displayClientMessage(Component.literal("§c§l[AutoBot] MASTER OFF"), true);
                 client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 1.0F);
             }
         }
     }
-    
-    private void executeBot(MinecraftClient client) {
+
+    private void executeBot(Minecraft client) {
         long currentTime = System.currentTimeMillis();
-        
+
         // GUI interactions
         if (client.currentScreen != null) {
-            if (client.currentScreen instanceof HandledScreen && inventoryManager != null) {
-                inventoryManager.tick(client, (HandledScreen<?>) client.currentScreen);
+            if (client.currentScreen instanceof AbstractContainerScreen && inventoryManager != null) {
+                inventoryManager.tick(client, (AbstractContainerScreen<?>) client.currentScreen);
             }
-            
+
             if (guiClickManager != null) guiClickManager.tick(client);
-            
+
             if (commandEnabled && !command.isEmpty() && (currentTime - lastCommandTime) >= commandDelay) {
                 sendCommand(client);
                 lastCommandTime = currentTime;
@@ -331,13 +349,13 @@ public class AutoBotMod implements ClientModInitializer {
         // World interactions
         else {
             if (worldManager != null) worldManager.tick(client);
-            
+
             if (commandEnabled && !command.isEmpty() && (currentTime - lastCommandTime) >= commandDelay) {
                 sendCommand(client);
                 lastCommandTime = currentTime;
             }
         }
-        
+
         // Conditional actions
         if (conditionalActions != null) {
             for (ConditionalAction action : conditionalActions) {
@@ -345,29 +363,29 @@ public class AutoBotMod implements ClientModInitializer {
             }
         }
     }
-    
-    private void sendCommand(MinecraftClient client) {
+
+    private void sendCommand(Minecraft client) {
         if (client.player == null || command.trim().isEmpty()) return;
         try {
             if (command.startsWith("/")) {
-                client.player.networkHandler.sendChatCommand(command.substring(1));
+                client.player.connection.sendCommand(command.substring(1));
             } else {
-                client.player.networkHandler.sendChatMessage(command);
+                client.player.connection.sendChat(command);
             }
-            if(statsTracker != null) statsTracker.incrementCommands();
+            if (statsTracker != null) statsTracker.incrementCommands();
         } catch (Exception e) {
             // Ignore
         }
     }
-    
-    private void performSmartDetect(MinecraftClient client) {
+
+    private void performSmartDetect(Minecraft client) {
         if (client.currentScreen == null) return;
-        
+
         if (SlimefunDetector.isSlimefunGUI(client.currentScreen)) {
             performSlimefunQuickSetup(client);
             return;
         }
-        
+
         SmartDetector.GuiType guiType = SmartDetector.detectGuiType(client.currentScreen);
         if (guiType != SmartDetector.GuiType.UNKNOWN) {
             SmartDetector.autoConfigureForGui(client, guiType);
@@ -377,7 +395,7 @@ public class AutoBotMod implements ClientModInitializer {
                 try {
                     guiClickManager.setTimingPattern(TimingPattern.valueOf(SmartDetector.suggestTimingPattern(guiType)));
                 } catch (Exception e) { /* ignore */ }
-                
+
                 long[] delays = SmartDetector.suggestDelays(guiType);
                 guiClickManager.setBaseDelay(delays[0]);
                 guiClickManager.setMinDelay(delays[1]);
@@ -385,32 +403,32 @@ public class AutoBotMod implements ClientModInitializer {
             }
         }
     }
-    
-    private void performSlimefunQuickSetup(MinecraftClient client) {
+
+    private void performSlimefunQuickSetup(Minecraft client) {
         if (client.currentScreen == null || slimefunManager == null) return;
         if (!SlimefunDetector.isSlimefunGUI(client.currentScreen)) {
-            if (client.player != null) client.player.sendMessage(Text.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
+            if (client.player != null) client.player.displayClientMessage(Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
             return;
         }
         slimefunManager.quickSetup(client);
     }
-    
-    private void performEmergencyStop(MinecraftClient client) {
+
+    private void performEmergencyStop(Minecraft client) {
         botRunning = false;
-        if(worldManager != null) worldManager.disableAll();
-        if(inventoryManager != null) inventoryManager.disableAll();
-        if(guiClickManager != null) guiClickManager.clearTargets();
+        if (worldManager != null) worldManager.disableAll();
+        if (inventoryManager != null) inventoryManager.disableAll();
+        if (guiClickManager != null) guiClickManager.clearTargets();
         commandEnabled = false;
-        if(scheduler != null) scheduler.setEnabled(false);
-        if(slimefunManager != null) slimefunManager.setSlimefunModeEnabled(false);
-        
+        if (scheduler != null) scheduler.setEnabled(false);
+        if (slimefunManager != null) slimefunManager.setSlimefunModeEnabled(false);
+
         if (client.player != null) {
-            client.player.sendMessage(Text.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
+            client.player.displayClientMessage(Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
             client.player.playSound(SoundEvents.BLOCK_ANVIL_LAND, 1.0F, 0.8F);
         }
     }
-    
-    // Method ini sekarang dipanggil dari handleTick(), bukan onInitializeClient()
+
+    // Called from handleTick(), not onInitializeClient() (avoids GLFW init-order crash)
     private void initializeDefaultHotkeys() {
         if (hotkeyManager == null) return;
         try {
@@ -420,43 +438,43 @@ public class AutoBotMod implements ClientModInitializer {
             System.err.println("[AutoBot] Failed to register default hotkeys: " + e.getMessage());
         }
     }
-    
+
     public static void saveConfiguration() {
         if (configManager == null) return;
-        
+
         configManager.set("commandEnabled", commandEnabled);
         configManager.set("showGuiButtons", showGuiButtons);
         configManager.set("command", command);
         configManager.set("commandDelay", commandDelay);
-        
-        if(worldManager != null) worldManager.saveToConfig(configManager);
-        if(inventoryManager != null) inventoryManager.saveToConfig(configManager);
-        
-        if(visualOverlay != null) {
+
+        if (worldManager != null) worldManager.saveToConfig(configManager);
+        if (inventoryManager != null) inventoryManager.saveToConfig(configManager);
+
+        if (visualOverlay != null) {
             configManager.set("overlayEnabled", visualOverlay.isEnabled());
             configManager.set("overlayShowStats", visualOverlay.isShowStats());
         }
-        
-        if(slimefunManager != null) {
+
+        if (slimefunManager != null) {
             configManager.set("slimefunModeEnabled", slimefunManager.isSlimefunModeEnabled());
             configManager.set("slimefunSafetyMode", slimefunManager.isSafetyMode());
         }
-        
+
         configManager.saveConfig();
         System.out.println("[AutoBot] Configuration saved");
     }
-    
+
     private void shutdown() {
         saveConfiguration();
-        if(configManager != null) configManager.cleanup();
-        if(sessionManager != null) sessionManager.shutdown();
+        if (configManager != null) configManager.cleanup();
+        if (sessionManager != null) sessionManager.shutdown();
     }
-    
+
     // Public Accessors (Null-Safe)
     public static boolean isRunning() { return botRunning; }
     public static boolean isShowGuiButtons() { return showGuiButtons; }
     public static void setShowGuiButtons(boolean show) { showGuiButtons = show; }
-    
+
     public static GuiClickManager getGuiClickManager() { return guiClickManager; }
     public static WorldInteractionManager getWorldManager() { return worldManager; }
     public static InventoryManager getInventoryManager() { return inventoryManager; }
@@ -470,7 +488,7 @@ public class AutoBotMod implements ClientModInitializer {
     public static HotkeyManager getHotkeyManager() { return hotkeyManager; }
     public static List<ConditionalAction> getConditionalActions() { return conditionalActions; }
     public static SlimefunAutoManager getSlimefunManager() { return slimefunManager; }
-    
+
     public static boolean isCommandEnabled() { return commandEnabled; }
     public static void setCommandEnabled(boolean enabled) { commandEnabled = enabled; }
     public static String getCommand() { return command; }

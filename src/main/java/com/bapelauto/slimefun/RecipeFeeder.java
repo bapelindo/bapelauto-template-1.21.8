@@ -4,14 +4,14 @@
 // ============================================
 package com.bapelauto.slimefun;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.text.Text;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.network.chat.Component;
 
 import java.util.*;
 
@@ -42,7 +42,7 @@ public class RecipeFeeder {
         /**
          * Check if recipe is complete
          */
-        public boolean isComplete(ScreenHandler handler) {
+        public boolean isComplete(AbstractContainerMenu handler) {
             for (Map.Entry<Integer, ItemMatcher> entry : slotRequirements.entrySet()) {
                 int slotId = entry.getKey();
                 ItemMatcher matcher = entry.getValue();
@@ -60,7 +60,7 @@ public class RecipeFeeder {
         /**
          * Get missing items for this recipe
          */
-        public List<MissingItem> getMissingItems(ScreenHandler handler) {
+        public List<MissingItem> getMissingItems(AbstractContainerMenu handler) {
             List<MissingItem> missing = new ArrayList<>();
             
             for (Map.Entry<Integer, ItemMatcher> entry : slotRequirements.entrySet()) {
@@ -181,17 +181,17 @@ public class RecipeFeeder {
     /**
      * Main tick - check and feed recipe ingredients
      */
-    public void tick(MinecraftClient client) {
+    public void tick(Minecraft client) {
         if (!enabled) return;
-        if (client.currentScreen == null || !(client.currentScreen instanceof HandledScreen)) return;
+        if (client.currentScreen == null || !(client.currentScreen instanceof AbstractContainerScreen)) return;
         if (client.interactionManager == null || client.player == null) return;
         if (currentRecipe == null) return;
         
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastFeedTime < feedDelay) return;
         
-        HandledScreen<?> screen = (HandledScreen<?>) client.currentScreen;
-        ScreenHandler handler = screen.getScreenHandler();
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
+        AbstractContainerMenu handler = screen.getScreenHandler();
         
         // Check if recipe is complete
         if (currentRecipe.isComplete(handler)) {
@@ -215,7 +215,7 @@ public class RecipeFeeder {
         // If we get here, we couldn't feed any items (probably missing from inventory)
         if (autoDetectMode && client.player != null) {
             client.player.sendMessage(
-                Text.literal("§c[Recipe Feeder] Missing required items for recipe!"),
+                Component.literal("§c[Recipe Feeder] Missing required items for recipe!"),
                 true
             );
         }
@@ -224,7 +224,7 @@ public class RecipeFeeder {
     /**
      * Feed a missing item to recipe slot
      */
-    private boolean feedMissingItem(MinecraftClient client, ScreenHandler handler, MissingItem missing) {
+    private boolean feedMissingItem(Minecraft client, AbstractContainerMenu handler, MissingItem missing) {
         // Get player inventory range
         int totalSlots = handler.slots.size();
         int playerStart = Math.max(0, totalSlots - 36);
@@ -248,13 +248,13 @@ public class RecipeFeeder {
                     if (toTake == stack.getCount()) {
                         // Take all
                         client.interactionManager.clickSlot(
-                            handler.syncId, i, 0, SlotActionType.PICKUP, client.player
+                            handler.syncId, i, 0, ClickType.PICKUP, client.player
                         );
                     } else {
                         // Take partial (right-click to take half, or shift-click logic)
                         // For simplicity, take all and put back extra
                         client.interactionManager.clickSlot(
-                            handler.syncId, i, 0, SlotActionType.PICKUP, client.player
+                            handler.syncId, i, 0, ClickType.PICKUP, client.player
                         );
                     }
                     
@@ -265,19 +265,19 @@ public class RecipeFeeder {
                     if (recipeSlot.getStack().isEmpty()) {
                         // Slot is empty, place item
                         client.interactionManager.clickSlot(
-                            handler.syncId, targetSlot, 0, SlotActionType.PICKUP, client.player
+                            handler.syncId, targetSlot, 0, ClickType.PICKUP, client.player
                         );
                     } else {
                         // Slot has items, add to stack
                         client.interactionManager.clickSlot(
-                            handler.syncId, targetSlot, 0, SlotActionType.PICKUP, client.player
+                            handler.syncId, targetSlot, 0, ClickType.PICKUP, client.player
                         );
                     }
                     
                     // Put back any remaining items
                     if (!client.player.currentScreenHandler.getCursorStack().isEmpty()) {
                         client.interactionManager.clickSlot(
-                            handler.syncId, i, 0, SlotActionType.PICKUP, client.player
+                            handler.syncId, i, 0, ClickType.PICKUP, client.player
                         );
                     }
                     
@@ -285,7 +285,7 @@ public class RecipeFeeder {
                     
                     if (client.player != null) {
                         client.player.sendMessage(
-                            Text.literal("§a[Recipe] Placed " + stack.getItem().getName().getString() + 
+                            Component.literal("§a[Recipe] Placed " + stack.getItem().getName().getString() + 
                                        " in slot " + targetSlot),
                             true
                         );
@@ -305,13 +305,13 @@ public class RecipeFeeder {
     /**
      * Learn recipe from current crafting grid state
      */
-    public Recipe learnRecipe(MinecraftClient client, String recipeName) {
-        if (!(client.currentScreen instanceof HandledScreen)) {
+    public Recipe learnRecipe(Minecraft client, String recipeName) {
+        if (!(client.currentScreen instanceof AbstractContainerScreen)) {
             return null;
         }
         
-        HandledScreen<?> screen = (HandledScreen<?>) client.currentScreen;
-        ScreenHandler handler = screen.getScreenHandler();
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
+        AbstractContainerMenu handler = screen.getScreenHandler();
         
         Map<Integer, ItemMatcher> learned = new HashMap<>();
         
@@ -333,7 +333,7 @@ public class RecipeFeeder {
         if (learned.isEmpty()) {
             if (client.player != null) {
                 client.player.sendMessage(
-                    Text.literal("§c[Recipe] No items in crafting grid to learn!"),
+                    Component.literal("§c[Recipe] No items in crafting grid to learn!"),
                     false
                 );
             }
@@ -347,7 +347,7 @@ public class RecipeFeeder {
         
         if (client.player != null) {
             client.player.sendMessage(
-                Text.literal("§a[Recipe] Learned recipe: " + recipeName + " (" + learned.size() + " ingredients)"),
+                Component.literal("§a[Recipe] Learned recipe: " + recipeName + " (" + learned.size() + " ingredients)"),
                 true
             );
         }
@@ -358,7 +358,7 @@ public class RecipeFeeder {
     /**
      * Detect crafting grid slots
      */
-    private int[] detectCraftingSlots(ScreenHandler handler) {
+    private int[] detectCraftingSlots(AbstractContainerMenu handler) {
         // For Enhanced Crafting Table: typically slots 0-8
         // For standard Crafting Table: slots 1-9
         // This is a simplified version - may need adjustment per machine
@@ -377,7 +377,7 @@ public class RecipeFeeder {
     /**
      * Detect output slot
      */
-    private int detectOutputSlot(ScreenHandler handler) {
+    private int detectOutputSlot(AbstractContainerMenu handler) {
         // Common output slots: 0, 24, or right side of GUI
         // This is simplified - may need adjustment
         

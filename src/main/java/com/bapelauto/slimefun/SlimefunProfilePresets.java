@@ -6,8 +6,8 @@ package com.bapelauto.slimefun;
 
 import com.bapelauto.AutoBotMod;
 import com.bapelauto.click.TimingPattern;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -288,7 +288,7 @@ public class SlimefunProfilePresets {
     /**
      * Apply a preset configuration
      */
-    public static void applyPreset(SlimefunPreset preset, MinecraftClient client) {
+    public static void applyPreset(SlimefunPreset preset, Minecraft client) {
         var configManager = AutoBotMod.getConfigManager();
         var guiClickManager = AutoBotMod.getGuiClickManager();
         var inventoryManager = AutoBotMod.getInventoryManager();
@@ -332,12 +332,12 @@ public class SlimefunProfilePresets {
         
         if (client.player != null) {
             client.player.sendMessage(
-                Text.literal("§a[Preset] Loaded: " + preset.getName()), true
+                Component.literal("§a[Preset] Loaded: " + preset.getName()), true
             );
             client.player.sendMessage(
-                Text.literal("§7" + preset.getDescription()), false
+                Component.literal("§7" + preset.getDescription()), false
             );
-            client.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
+            client.player.playSound(net.minecraft.sounds.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
         }
     }
     
@@ -401,7 +401,7 @@ public class SlimefunProfilePresets {
     /**
      * Quick apply - detect machine and apply best preset
      */
-    public static void quickApply(MinecraftClient client) {
+    public static void quickApply(Minecraft client) {
         if (client.currentScreen == null) return;
         
         SlimefunDetector.SlimefunMachine machine = SlimefunDetector.detectMachineType(client.currentScreen);
@@ -409,7 +409,7 @@ public class SlimefunProfilePresets {
         if (machine == SlimefunDetector.SlimefunMachine.UNKNOWN) {
             if (client.player != null) {
                 client.player.sendMessage(
-                    Text.literal("§c[Slimefun] Not a recognized Slimefun machine"), false
+                    Component.literal("§c[Slimefun] Not a recognized Slimefun machine"), false
                 );
             }
             return;
@@ -421,15 +421,15 @@ public class SlimefunProfilePresets {
         // Also show machine-specific instructions
         String instructions = SlimefunDetector.getMachineInstructions(machine);
         if (client.player != null && !instructions.isEmpty()) {
-            client.player.sendMessage(Text.literal("§e➤ " + instructions), false);
+            client.player.sendMessage(Component.literal("§e➤ " + instructions), false);
         }
         
         // Show safety warnings if needed
         if (SlimefunDetector.needsSpecialHandling(machine)) {
             String warning = SlimefunDetector.getSafetyWarning(machine);
             if (client.player != null && !warning.isEmpty()) {
-                client.player.sendMessage(Text.literal(warning), true);
-                client.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_ANVIL_LAND, 0.7F, 1.0F);
+                client.player.sendMessage(Component.literal(warning), true);
+                client.player.playSound(net.minecraft.sounds.SoundEvents.BLOCK_ANVIL_LAND, 0.7F, 1.0F);
             }
         }
     }

@@ -6,12 +6,12 @@ package com.bapelauto.slimefun;
 
 import com.bapelauto.click.ClickTarget;
 import com.bapelauto.click.TimingPattern;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +108,7 @@ public class SlimefunDetector {
      * Detect if current GUI is a Slimefun machine
      */
     public static boolean isSlimefunGUI(Screen screen) {
-        if (!(screen instanceof HandledScreen)) return false;
+        if (!(screen instanceof AbstractContainerScreen)) return false;
         
         String title = screen.getTitle().getString().toLowerCase();
         
@@ -122,14 +122,14 @@ public class SlimefunDetector {
                title.contains("machine") ||
                title.contains("cargo") ||
                title.contains("android") ||
-               detectBySlotPattern((HandledScreen<?>) screen);
+               detectBySlotPattern((AbstractContainerScreen<?>) screen);
     }
     
     /**
      * Detect Slimefun machine type from GUI
      */
     public static SlimefunMachine detectMachineType(Screen screen) {
-        if (!(screen instanceof HandledScreen)) return SlimefunMachine.UNKNOWN;
+        if (!(screen instanceof AbstractContainerScreen)) return SlimefunMachine.UNKNOWN;
         
         String title = screen.getTitle().getString().toLowerCase();
         
@@ -198,7 +198,7 @@ public class SlimefunDetector {
     /**
      * Detect by slot pattern (Slimefun machines typically have specific layouts)
      */
-    private static boolean detectBySlotPattern(HandledScreen<?> screen) {
+    private static boolean detectBySlotPattern(AbstractContainerScreen<?> screen) {
         int totalSlots = screen.getScreenHandler().slots.size();
         
         // Slimefun machines typically have 54 slots (27 machine + 27 player)
@@ -210,14 +210,14 @@ public class SlimefunDetector {
     /**
      * Auto-detect and capture output slots for Slimefun machines
      */
-    public static List<ClickTarget> autoDetectSlimefunTargets(MinecraftClient client, SlimefunMachine machine) {
+    public static List<ClickTarget> autoDetectSlimefunTargets(Minecraft client, SlimefunMachine machine) {
         List<ClickTarget> targets = new ArrayList<>();
         
-        if (!(client.currentScreen instanceof HandledScreen)) {
+        if (!(client.currentScreen instanceof AbstractContainerScreen)) {
             return targets;
         }
         
-        HandledScreen<?> screen = (HandledScreen<?>) client.currentScreen;
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
         
         // Use predefined output slots if available
         int[] outputSlots = machine.getOutputSlots();
@@ -243,7 +243,7 @@ public class SlimefunDetector {
         
         if (client.player != null && !targets.isEmpty()) {
             client.player.sendMessage(
-                Text.literal("§a[Slimefun] Detected " + machine.getDisplayName() + 
+                Component.literal("§a[Slimefun] Detected " + machine.getDisplayName() + 
                            " - " + targets.size() + " output slots"), 
                 true
             );
@@ -281,26 +281,26 @@ public class SlimefunDetector {
     /**
      * Auto-configure bot for detected Slimefun machine
      */
-    public static void autoConfigureForSlimefun(MinecraftClient client, SlimefunMachine machine) {
+    public static void autoConfigureForSlimefun(Minecraft client, SlimefunMachine machine) {
         if (client.player == null) return;
         
         client.player.sendMessage(
-            Text.literal("§e§l[Slimefun Auto-Config]"), false
+            Component.literal("§e§l[Slimefun Auto-Config]"), false
         );
         client.player.sendMessage(
-            Text.literal("§7Machine: §f" + machine.getDisplayName()), false
+            Component.literal("§7Machine: §f" + machine.getDisplayName()), false
         );
         client.player.sendMessage(
-            Text.literal("§7Type: §f" + machine.getDescription()), false
+            Component.literal("§7Type: §f" + machine.getDescription()), false
         );
         client.player.sendMessage(
-            Text.literal("§7Pattern: §f" + machine.getRecommendedPattern().getDisplayName()), false
+            Component.literal("§7Pattern: §f" + machine.getRecommendedPattern().getDisplayName()), false
         );
         client.player.sendMessage(
-            Text.literal("§7Delay: §f" + machine.getRecommendedDelay() + "ms"), false
+            Component.literal("§7Delay: §f" + machine.getRecommendedDelay() + "ms"), false
         );
         client.player.sendMessage(
-            Text.literal("§a✓ Press [=] to start automation"), false
+            Component.literal("§a✓ Press [=] to start automation"), false
         );
     }
     

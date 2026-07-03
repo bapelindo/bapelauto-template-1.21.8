@@ -4,11 +4,11 @@
 // ============================================
 package com.bapelauto.click;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -34,18 +34,18 @@ public class GuiClickManager {
     private long burstPause = 2000;
     private int currentBurstCounter = 0;
     
-    public void captureTarget(MinecraftClient client, long defaultDelay) {
+    public void captureTarget(Minecraft client, long defaultDelay) {
         if (client.currentScreen == null) return;
         
         ClickTarget newTarget = null;
         
         // Try to capture slot first
-        if (client.currentScreen instanceof HandledScreen) {
-            Slot slot = getFocusedSlot((HandledScreen<?>) client.currentScreen);
+        if (client.currentScreen instanceof AbstractContainerScreen) {
+            Slot slot = getFocusedSlot((AbstractContainerScreen<?>) client.currentScreen);
             if (slot != null) {
                 newTarget = new ClickTarget(slot.id, defaultDelay);
                 if (client.player != null) {
-                    client.player.sendMessage(Text.literal("§e[Capture] Slot: " + slot.id), true);
+                    client.player.sendMessage(Component.literal("§e[Capture] Slot: " + slot.id), true);
                 }
             }
         }
@@ -56,7 +56,7 @@ public class GuiClickManager {
             double mouseY = client.mouse.getY() * (double)client.getWindow().getScaledHeight() / (double)client.getWindow().getHeight();
             newTarget = new ClickTarget(mouseX, mouseY, defaultDelay);
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§e[Capture] Point: " + (int)mouseX + ", " + (int)mouseY), true);
+                client.player.sendMessage(Component.literal("§e[Capture] Point: " + (int)mouseX + ", " + (int)mouseY), true);
             }
         }
         
@@ -64,7 +64,7 @@ public class GuiClickManager {
         if (macroRecorder.isRecording()) {
             macroRecorder.recordAction(newTarget);
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§a[Recording] Step " + macroRecorder.getActionCount()), true);
+                client.player.sendMessage(Component.literal("§a[Recording] Step " + macroRecorder.getActionCount()), true);
             }
         } else {
             // Normal capture mode
@@ -72,7 +72,7 @@ public class GuiClickManager {
             updateMode();
             
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§6[Capture] Total: " + capturedTargets.size()), true);
+                client.player.sendMessage(Component.literal("§6[Capture] Total: " + capturedTargets.size()), true);
                 client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
             }
         }
@@ -90,11 +90,11 @@ public class GuiClickManager {
         }
     }
     
-    public void startRecording(MinecraftClient client) {
+    public void startRecording(Minecraft client) {
         macroRecorder.startRecording(client);
     }
     
-    public void stopRecording(MinecraftClient client) {
+    public void stopRecording(Minecraft client) {
         macroRecorder.stopRecording(client);
         
         if (macroRecorder.getActionCount() > 0) {
@@ -105,15 +105,15 @@ public class GuiClickManager {
             isActive = false;
             
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§e[Macro] Ready to replay - Press [=] to start"), true);
+                client.player.sendMessage(Component.literal("§e[Macro] Ready to replay - Press [=] to start"), true);
             }
         }
     }
     
-    public void toggle(MinecraftClient client) {
+    public void toggle(Minecraft client) {
         if (capturedTargets.isEmpty()) {
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§c[Click] No targets! Press [-] to capture"), false);
+                client.player.sendMessage(Component.literal("§c[Click] No targets! Press [-] to capture"), false);
             }
             isActive = false;
             return;
@@ -131,11 +131,11 @@ public class GuiClickManager {
             String status = isActive ? "§a§lACTIVE" : "§cPAUSED";
             String mode = " [" + currentMode.getDisplayName() + "]";
             String pattern = " {" + timingPattern.getDisplayName() + "}";
-            client.player.sendMessage(Text.literal("§6[Click] " + status + mode + pattern), true);
+            client.player.sendMessage(Component.literal("§6[Click] " + status + mode + pattern), true);
         }
     }
     
-    public void tick(MinecraftClient client) {
+    public void tick(Minecraft client) {
         if (!isActive || capturedTargets.isEmpty()) return;
         if (client.currentScreen == null) return;
         
@@ -176,9 +176,9 @@ public class GuiClickManager {
         currentMode = ClickMode.SINGLE_POINT;
     }
     
-    private Slot getFocusedSlot(HandledScreen<?> screen) {
+    private Slot getFocusedSlot(AbstractContainerScreen<?> screen) {
         try {
-            for (Field f : HandledScreen.class.getDeclaredFields()) {
+            for (Field f : AbstractContainerScreen.class.getDeclaredFields()) {
                 if (Slot.class.isAssignableFrom(f.getType())) {
                     f.setAccessible(true);
                     return (Slot) f.get(screen);

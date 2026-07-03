@@ -4,9 +4,9 @@
 // ============================================
 package com.bapelauto.click;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +16,10 @@ public class MacroRecorder {
     private long recordingStartTime = 0;
     private final List<MacroAction> recordedActions = new ArrayList<>();
     
-    public void startRecording(MinecraftClient client) {
+    public void startRecording(Minecraft client) {
         if (isRecording) {
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§c[Recording] Already recording!"), false);
+                client.player.sendMessage(Component.literal("§c[Recording] Already recording!"), false);
             }
             return;
         }
@@ -29,15 +29,15 @@ public class MacroRecorder {
         recordedActions.clear();
         
         if (client.player != null) {
-            client.player.sendMessage(Text.literal("§a§l[Recording] STARTED - Capture points with [-], stop with []]"), true);
+            client.player.sendMessage(Component.literal("§a§l[Recording] STARTED - Capture points with [-], stop with []]"), true);
             client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 2.0F);
         }
     }
     
-    public void stopRecording(MinecraftClient client) {
+    public void stopRecording(Minecraft client) {
         if (!isRecording) {
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§c[Recording] Not recording!"), false);
+                client.player.sendMessage(Component.literal("§c[Recording] Not recording!"), false);
             }
             return;
         }
@@ -46,13 +46,13 @@ public class MacroRecorder {
         
         if (recordedActions.isEmpty()) {
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§c[Recording] No actions recorded!"), false);
+                client.player.sendMessage(Component.literal("§c[Recording] No actions recorded!"), false);
             }
             return;
         }
         
         if (client.player != null) {
-            client.player.sendMessage(Text.literal("§a§l[Recording] STOPPED - " + recordedActions.size() + " actions saved"), true);
+            client.player.sendMessage(Component.literal("§a§l[Recording] STOPPED - " + recordedActions.size() + " actions saved"), true);
             client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
         }
     }

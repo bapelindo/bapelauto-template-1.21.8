@@ -6,7 +6,7 @@ package com.bapelauto.realm;
 
 import com.bapelauto.SessionManager;
 import com.bapelauto.ShardedConfigManager;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class RealmTracker {
     private final SessionManager sessionManager;
@@ -30,7 +30,7 @@ public class RealmTracker {
         this.enableResetPerRealm = configManager.getBoolean("enableResetPerRealm", true);
     }
     
-    public void tick(MinecraftClient client) {
+    public void tick(Minecraft client) {
         boolean connected = (client.player != null && client.getNetworkHandler() != null);
         String serverAddr = getServerAddress(client);
         String realmName = getRealmName(client);
@@ -93,14 +93,14 @@ public class RealmTracker {
         }
     }
     
-    private String getServerAddress(MinecraftClient client) {
+    private String getServerAddress(Minecraft client) {
         if (client.getCurrentServerEntry() != null) {
             return client.getCurrentServerEntry().address;
         }
         return "";
     }
     
-    private String getRealmName(MinecraftClient client) {
+    private String getRealmName(Minecraft client) {
         if (client.world != null && client.world.getRegistryKey() != null) {
             String fullPath = client.world.getRegistryKey().getValue().getPath();
             if (fullPath.contains(":")) {

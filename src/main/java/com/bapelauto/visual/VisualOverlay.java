@@ -6,10 +6,10 @@ package com.bapelauto.visual;
 
 import com.bapelauto.AutoBotMod;
 import com.bapelauto.click.ClickTarget;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +29,11 @@ public class VisualOverlay {
     /**
      * Render overlay on GUI screens
      */
-    public void renderGuiOverlay(DrawContext context, MinecraftClient client, int mouseX, int mouseY) {
+    public void renderGuiOverlay(GuiGraphics context, Minecraft client, int mouseX, int mouseY) {
         if (!enabled) return;
         
         // Draw targets
-        if (showTargets && client.currentScreen instanceof HandledScreen) {
+        if (showTargets && client.currentScreen instanceof AbstractContainerScreen) {
             renderTargets(context, client);
         }
         
@@ -51,7 +51,7 @@ public class VisualOverlay {
     /**
      * Render overlay in world (HUD)
      */
-    public void renderWorldOverlay(DrawContext context, MinecraftClient client) {
+    public void renderWorldOverlay(GuiGraphics context, Minecraft client) {
         if (!enabled) return;
         
         // Status indicator in corner
@@ -63,11 +63,11 @@ public class VisualOverlay {
         }
     }
     
-    private void renderTargets(DrawContext context, MinecraftClient client) {
+    private void renderTargets(GuiGraphics context, Minecraft client) {
         var guiClickManager = AutoBotMod.getGuiClickManager();
         if (guiClickManager == null || !guiClickManager.hasTargets()) return;
         
-        HandledScreen<?> screen = (HandledScreen<?>) client.currentScreen;
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
         
         // Highlight captured targets
         // Note: This is a simplified version - actual slot highlighting requires more screen details
@@ -75,7 +75,7 @@ public class VisualOverlay {
         // Draw target count
         String targetText = "§6Targets: " + guiClickManager.getTargetCount();
         context.drawTextWithShadow(
-            client.textRenderer,
+            client.font,
             targetText,
             5, 5,
             0xFFFFAA
@@ -84,7 +84,7 @@ public class VisualOverlay {
         // Draw mode and pattern
         String modeText = "§7Mode: §f" + guiClickManager.getCurrentMode().getDisplayName();
         context.drawTextWithShadow(
-            client.textRenderer,
+            client.font,
             modeText,
             5, 17,
             0xAAAAAA
@@ -92,14 +92,14 @@ public class VisualOverlay {
         
         String patternText = "§7Pattern: §f" + guiClickManager.getTimingPattern().getDisplayName();
         context.drawTextWithShadow(
-            client.textRenderer,
+            client.font,
             patternText,
             5, 29,
             0xAAAAAA
         );
     }
     
-    private void renderStatsHud(DrawContext context, MinecraftClient client) {
+    private void renderStatsHud(GuiGraphics context, Minecraft client) {
         if (!AutoBotMod.isRunning()) return;
         
         int x = 5;
@@ -110,7 +110,7 @@ public class VisualOverlay {
         
         // Title
         context.drawTextWithShadow(
-            client.textRenderer,
+            client.font,
             "§6§l[AutoBot Stats]",
             x, y,
             0xFFAA00
@@ -133,7 +133,7 @@ public class VisualOverlay {
         
         for (String stat : stats) {
             context.drawTextWithShadow(
-                client.textRenderer,
+                client.font,
                 stat,
                 x, y,
                 0xAAAAAA
@@ -142,7 +142,7 @@ public class VisualOverlay {
         }
     }
     
-    private void renderStatusIndicator(DrawContext context, MinecraftClient client) {
+    private void renderStatusIndicator(GuiGraphics context, Minecraft client) {
         int x = client.getWindow().getScaledWidth() - 120;
         int y = 5;
         
@@ -153,14 +153,14 @@ public class VisualOverlay {
         // Status text
         String status = AutoBotMod.isRunning() ? "§a§lACTIVE" : "§c§lINACTIVE";
         context.drawCenteredTextWithShadow(
-            client.textRenderer,
+            client.font,
             status,
             x + 57, y + 6,
             0xFFFFFF
         );
     }
     
-    private void renderActiveFeatures(DrawContext context, MinecraftClient client) {
+    private void renderActiveFeatures(GuiGraphics context, Minecraft client) {
         int x = client.getWindow().getScaledWidth() - 120;
         int y = 30;
         
@@ -184,7 +184,7 @@ public class VisualOverlay {
         
         // Title
         context.drawTextWithShadow(
-            client.textRenderer,
+            client.font,
             "§e§lActive Features",
             x + 5, y + 3,
             0xFFFF55
@@ -194,7 +194,7 @@ public class VisualOverlay {
         // Features list
         for (String feature : activeFeatures) {
             context.drawTextWithShadow(
-                client.textRenderer,
+                client.font,
                 feature,
                 x + 5, y,
                 0xAAAAAA
@@ -203,7 +203,7 @@ public class VisualOverlay {
         }
     }
     
-    private void renderClickIndicators(DrawContext context) {
+    private void renderClickIndicators(GuiGraphics context) {
         long currentTime = System.currentTimeMillis();
         
         clickIndicators.removeIf(indicator -> 

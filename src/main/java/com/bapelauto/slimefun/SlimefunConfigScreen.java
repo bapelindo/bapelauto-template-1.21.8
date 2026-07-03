@@ -5,11 +5,11 @@
 package com.bapelauto.slimefun;
 
 import com.bapelauto.AutoBotMod;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
@@ -45,12 +45,12 @@ public class SlimefunConfigScreen extends Screen {
     private String recipeSearchQuery = "";
     private String selectedCategory = "all";
     
-    // Text fields
-    private TextFieldWidget recipeNameField;
-    private TextFieldWidget recipeSearchField;
+    // Component fields
+    private EditBox recipeNameField;
+    private EditBox recipeSearchField;
     
     public SlimefunConfigScreen(Screen parent) {
-        super(Text.literal("Slimefun Automation"));
+        super(Component.literal("Slimefun Automation"));
         this.parent = parent;
         this.slimefunManager = AutoBotMod.getSlimefunManager();
     }
@@ -74,17 +74,17 @@ public class SlimefunConfigScreen extends Screen {
             
             boolean isActive = (tab == currentTab);
             
-            ButtonWidget tabBtn = ButtonWidget.builder(
-                Text.literal(tab.name),
+            Button tabBtn = Button.builder(
+                Component.literal(tab.name),
                 b -> switchTab(tabFinal)
-            ).dimensions(
+            ).bounds(
                 tabStartX + (tabWidth + tabSpacing) * i, 
                 tabY, 
                 tabWidth, 
                 22
             ).build();
             
-            this.addDrawableChild(tabBtn);
+            this.addRenderableWidget(tabBtn);
         }
         
         // ==========================================
@@ -113,34 +113,34 @@ public class SlimefunConfigScreen extends Screen {
         // ==========================================
         int footerY = this.height - 28;
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§c✖ Close"),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§c✖ Close"),
             b -> this.close()
-        ).dimensions(cx - 160, footerY, 70, 20).build());
+        ).bounds(cx - 160, footerY, 70, 20).build());
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§eMain Config"),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§eMain Config"),
             b -> {
-                if (this.client != null) {
-                    this.client.setScreen(new com.bapelauto.AutoBotConfigScreen(this.parent));
+                if (this.minecraft != null) {
+                    this.minecraft.setScreen(new com.bapelauto.AutoBotConfigScreen(this.parent));
                 }
             }
-        ).dimensions(cx - 85, footerY, 80, 20).build());
+        ).bounds(cx - 85, footerY, 80, 20).build());
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§b? Help"),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§b? Help"),
             b -> showHelp()
-        ).dimensions(cx + 5, footerY, 75, 20).build());
+        ).bounds(cx + 5, footerY, 75, 20).build());
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§6⚡ Quick"),
-            b -> slimefunManager.quickSetup(this.client)
-        ).dimensions(cx + 85, footerY, 75, 20).build());
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§6⚡ Quick"),
+            b -> slimefunManager.quickSetup(this.minecraft)
+        ).bounds(cx + 85, footerY, 75, 20).build());
     }
     
     private void switchTab(Tab newTab) {
         currentTab = newTab;
-        this.clearChildren();
+        this.clearWidgets();
         this.init();
     }
     
@@ -152,29 +152,29 @@ public class SlimefunConfigScreen extends Screen {
         int startY = 70;
         
         // Slimefun Mode Toggle - Big Button
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal(slimefunManager.isSlimefunModeEnabled() ? 
+        this.addRenderableWidget(Button.builder(
+            Component.literal(slimefunManager.isSlimefunModeEnabled() ? 
                 "§a§l✓ SLIMEFUN MODE: ON" : "§c§l✗ SLIMEFUN MODE: OFF"),
             b -> {
                 if (slimefunManager.isSlimefunModeEnabled()) {
-                    slimefunManager.disable(this.client);
+                    slimefunManager.disable(this.minecraft);
                 } else {
-                    slimefunManager.enable(this.client);
+                    slimefunManager.enable(this.minecraft);
                 }
-                this.clearChildren();
+                this.clearWidgets();
                 this.init();
             }
-        ).dimensions(cx - 150, startY, 300, 30).build());
+        ).bounds(cx - 150, startY, 300, 30).build());
         
         startY += 40;
         
         // Current Machine Display
         SlimefunDetector.SlimefunMachine current = slimefunManager.getCurrentMachine();
         if (current != SlimefunDetector.SlimefunMachine.UNKNOWN) {
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§7Machine: §f" + current.getDisplayName()),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§7Machine: §f" + current.getDisplayName()),
                 b -> {}
-            ).dimensions(cx - 150, startY, 300, 20).build());
+            ).bounds(cx - 150, startY, 300, 20).build());
             
             startY += 25;
             
@@ -186,40 +186,40 @@ public class SlimefunConfigScreen extends Screen {
         startY += 10;
         
         // Safety Mode
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("Safety Mode: " + (slimefunManager.isSafetyMode() ? "§a✓ ON" : "§c✗ OFF")),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("Safety Mode: " + (slimefunManager.isSafetyMode() ? "§a✓ ON" : "§c✗ OFF")),
             b -> {
                 slimefunManager.setSafetyMode(!slimefunManager.isSafetyMode());
-                b.setMessage(Text.literal("Safety Mode: " + 
+                b.setMessage(Component.literal("Safety Mode: " + 
                     (slimefunManager.isSafetyMode() ? "§a✓ ON" : "§c✗ OFF")));
             }
-        ).dimensions(cx - 150, startY, 145, 22).build());
+        ).bounds(cx - 150, startY, 145, 22).build());
         
         // Reset Statistics
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§e🔄 Reset Stats"),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§e🔄 Reset Stats"),
             b -> {
                 slimefunManager.resetStatistics();
-                if (this.client != null && this.client.player != null) {
-                    this.client.player.sendMessage(
-                        Text.literal("§e[Slimefun] Statistics reset"), false
+                if (this.minecraft != null && this.minecraft.player != null) {
+                    this.minecraft.player.sendMessage(
+                        Component.literal("§e[Slimefun] Statistics reset"), false
                     );
                 }
             }
-        ).dimensions(cx + 5, startY, 145, 22).build());
+        ).bounds(cx + 5, startY, 145, 22).build());
         
         startY += 35;
         
         // Quick Actions Section
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§a★ Quick Setup"),
-            b -> slimefunManager.quickSetup(this.client)
-        ).dimensions(cx - 150, startY, 145, 24).build());
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§a★ Quick Setup"),
+            b -> slimefunManager.quickSetup(this.minecraft)
+        ).bounds(cx - 150, startY, 145, 24).build());
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§d📋 Full Status"),
-            b -> slimefunManager.showDetailedStatus(this.client)
-        ).dimensions(cx + 5, startY, 145, 24).build());
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§d📋 Full Status"),
+            b -> slimefunManager.showDetailedStatus(this.minecraft)
+        ).bounds(cx + 5, startY, 145, 24).build());
     }
     
     // ==========================================
@@ -231,20 +231,20 @@ public class SlimefunConfigScreen extends Screen {
         
         // ===== AUTO-INPUT SECTION =====
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal(slimefunManager.isAutoInputEnabled() ? 
+        this.addRenderableWidget(Button.builder(
+            Component.literal(slimefunManager.isAutoInputEnabled() ? 
                 "§a✓ Auto-Input: ON" : "§7○ Auto-Input: OFF"),
             b -> {
-                slimefunManager.toggleAutoInput(this.client);
-                this.clearChildren();
+                slimefunManager.toggleAutoInput(this.minecraft);
+                this.clearWidgets();
                 this.init();
             }
-        ).dimensions(cx - 150, startY, 200, 24).build());
+        ).bounds(cx - 150, startY, 200, 24).build());
         
         // Delay control (only show if enabled)
         if (slimefunManager.isAutoInputEnabled()) {
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§7⏱ " + slimefunManager.getInputFeeder().getFeedDelay() + "ms"),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§7⏱ " + slimefunManager.getInputFeeder().getFeedDelay() + "ms"),
                 b -> {
                     long current = slimefunManager.getInputFeeder().getFeedDelay();
                     long next = current == 200 ? 300 : 
@@ -252,76 +252,76 @@ public class SlimefunConfigScreen extends Screen {
                                current == 500 ? 750 :
                                current == 750 ? 1000 : 200;
                     slimefunManager.getInputFeeder().setFeedDelay(next);
-                    b.setMessage(Text.literal("§7⏱ " + next + "ms"));
+                    b.setMessage(Component.literal("§7⏱ " + next + "ms"));
                 }
-            ).dimensions(cx + 55, startY, 95, 24).build());
+            ).bounds(cx + 55, startY, 95, 24).build());
         }
         
         startY += 35;
         
         // ===== AUTO-RECIPE SECTION =====
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal(slimefunManager.isAutoRecipeEnabled() ? 
+        this.addRenderableWidget(Button.builder(
+            Component.literal(slimefunManager.isAutoRecipeEnabled() ? 
                 "§a✓ Auto-Recipe: ON" : "§7○ Auto-Recipe: OFF"),
             b -> {
-                slimefunManager.toggleAutoRecipe(this.client);
-                this.clearChildren();
+                slimefunManager.toggleAutoRecipe(this.minecraft);
+                this.clearWidgets();
                 this.init();
             }
-        ).dimensions(cx - 150, startY, 200, 24).build());
+        ).bounds(cx - 150, startY, 200, 24).build());
         
         // Delay control
         if (slimefunManager.isAutoRecipeEnabled()) {
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§7⏱ " + slimefunManager.getRecipeFeeder().getFeedDelay() + "ms"),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§7⏱ " + slimefunManager.getRecipeFeeder().getFeedDelay() + "ms"),
                 b -> {
                     long current = slimefunManager.getRecipeFeeder().getFeedDelay();
                     long next = current == 100 ? 200 : 
                                current == 200 ? 300 :
                                current == 300 ? 500 : 100;
                     slimefunManager.getRecipeFeeder().setFeedDelay(next);
-                    b.setMessage(Text.literal("§7⏱ " + next + "ms"));
+                    b.setMessage(Component.literal("§7⏱ " + next + "ms"));
                 }
-            ).dimensions(cx + 55, startY, 95, 24).build());
+            ).bounds(cx + 55, startY, 95, 24).build());
         }
         
         startY += 35;
         
         // ===== RECIPE LEARNING =====
         
-        recipeNameField = new TextFieldWidget(
-            this.textRenderer, cx - 150, startY, 200, 20, Text.literal("Recipe Name")
+        recipeNameField = new EditBox(
+            this.font, cx - 150, startY, 200, 20, Component.literal("Recipe Name")
         );
-        recipeNameField.setPlaceholder(Text.literal("Enter recipe name..."));
-        this.addDrawableChild(recipeNameField);
+        recipeNameField.setPlaceholder(Component.literal("Enter recipe name..."));
+        this.addRenderableWidget(recipeNameField);
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§aLearn"),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§aLearn"),
             b -> {
                 String name = recipeNameField.getText();
                 if (name != null && !name.trim().isEmpty()) {
-                    slimefunManager.learnRecipe(this.client, name);
+                    slimefunManager.learnRecipe(this.minecraft, name);
                     recipeNameField.setText("");
                 } else {
-                    if (this.client != null && this.client.player != null) {
-                        this.client.player.sendMessage(
-                            Text.literal("§c[Recipe] Enter a name first!"), false
+                    if (this.minecraft != null && this.minecraft.player != null) {
+                        this.minecraft.player.sendMessage(
+                            Component.literal("§c[Recipe] Enter a name first!"), false
                         );
                     }
                 }
             }
-        ).dimensions(cx + 55, startY, 95, 20).build());
+        ).bounds(cx + 55, startY, 95, 20).build());
         
         startY += 35;
         
         // Current Recipe Display
         var currentRecipe = slimefunManager.getRecipeFeeder().getCurrentRecipe();
         if (currentRecipe != null) {
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§7Active: §f" + currentRecipe.getName()),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§7Active: §f" + currentRecipe.getName()),
                 b -> {}
-            ).dimensions(cx - 150, startY, 300, 20).build());
+            ).bounds(cx - 150, startY, 300, 20).build());
         }
     }
     
@@ -333,33 +333,33 @@ public class SlimefunConfigScreen extends Screen {
         int startY = 70;
         
         // Search field
-        recipeSearchField = new TextFieldWidget(
-            this.textRenderer, cx - 150, startY, 200, 20, Text.literal("Search")
+        recipeSearchField = new EditBox(
+            this.font, cx - 150, startY, 200, 20, Component.literal("Search")
         );
-        recipeSearchField.setPlaceholder(Text.literal("Search recipes..."));
+        recipeSearchField.setPlaceholder(Component.literal("Search recipes..."));
         recipeSearchField.setText(recipeSearchQuery);
-        this.addDrawableChild(recipeSearchField);
+        this.addRenderableWidget(recipeSearchField);
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§b🔍"),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§b🔍"),
             b -> {
                 recipeSearchQuery = recipeSearchField.getText();
                 recipeScrollOffset = 0;
-                this.clearChildren();
+                this.clearWidgets();
                 this.init();
             }
-        ).dimensions(cx + 55, startY, 45, 20).build());
+        ).bounds(cx + 55, startY, 45, 20).build());
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§c✖"),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§c✖"),
             b -> {
                 recipeSearchQuery = "";
                 recipeSearchField.setText("");
                 recipeScrollOffset = 0;
-                this.clearChildren();
+                this.clearWidgets();
                 this.init();
             }
-        ).dimensions(cx + 105, startY, 45, 20).build());
+        ).bounds(cx + 105, startY, 45, 20).build());
         
         startY += 30;
         
@@ -372,15 +372,15 @@ public class SlimefunConfigScreen extends Screen {
             final String cat = categories[i];
             boolean isSelected = selectedCategory.equals(cat);
             
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal((isSelected ? "§e" : "§7") + categoryLabels[i]),
+            this.addRenderableWidget(Button.builder(
+                Component.literal((isSelected ? "§e" : "§7") + categoryLabels[i]),
                 b -> {
                     selectedCategory = cat;
                     recipeScrollOffset = 0;
-                    this.clearChildren();
+                    this.clearWidgets();
                     this.init();
                 }
-            ).dimensions(catX, startY, 48, 18).build());
+            ).bounds(catX, startY, 48, 18).build());
             
             catX += 50;
         }
@@ -418,26 +418,26 @@ public class SlimefunConfigScreen extends Screen {
             final RecipeFeeder.Recipe recipe = recipes.get(index);
             
             // Recipe button
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§f" + recipe.getName()),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§f" + recipe.getName()),
                 b -> {
                     slimefunManager.getRecipeFeeder().setRecipe(recipe);
-                    if (this.client != null && this.client.player != null) {
-                        this.client.player.sendMessage(
-                            Text.literal("§a[Recipe] Selected: " + recipe.getName()), true
+                    if (this.minecraft != null && this.minecraft.player != null) {
+                        this.minecraft.player.sendMessage(
+                            Component.literal("§a[Recipe] Selected: " + recipe.getName()), true
                         );
                     }
                 }
-            ).dimensions(cx - 150, listY, 240, 18).build());
+            ).bounds(cx - 150, listY, 240, 18).build());
             
             // Load button
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§aUse"),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§aUse"),
                 b -> {
                     slimefunManager.getRecipeFeeder().setRecipe(recipe);
-                    slimefunManager.enableAutoRecipe(this.client);
+                    slimefunManager.enableAutoRecipe(this.minecraft);
                 }
-            ).dimensions(cx + 95, listY, 55, 18).build());
+            ).bounds(cx + 95, listY, 55, 18).build());
             
             listY += 20;
         }
@@ -446,23 +446,23 @@ public class SlimefunConfigScreen extends Screen {
         if (totalRecipes > RECIPES_PER_PAGE) {
             int scrollY = this.height - 65;
             
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§7▲ Previous"),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§7▲ Previous"),
                 b -> {
                     recipeScrollOffset = Math.max(0, recipeScrollOffset - RECIPES_PER_PAGE);
-                    this.clearChildren();
+                    this.clearWidgets();
                     this.init();
                 }
-            ).dimensions(cx - 150, scrollY, 145, 20).build());
+            ).bounds(cx - 150, scrollY, 145, 20).build());
             
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§7Next ▼"),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§7Next ▼"),
                 b -> {
                     recipeScrollOffset = Math.min(maxOffset, recipeScrollOffset + RECIPES_PER_PAGE);
-                    this.clearChildren();
+                    this.clearWidgets();
                     this.init();
                 }
-            ).dimensions(cx + 5, scrollY, 145, 20).build());
+            ).bounds(cx + 5, scrollY, 145, 20).build());
         }
     }
     
@@ -482,22 +482,22 @@ public class SlimefunConfigScreen extends Screen {
             final SlimefunProfilePresets.SlimefunPreset preset = presets[i];
             
             // Preset button
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§f" + preset.getName()),
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§f" + preset.getName()),
                 b -> {
-                    if (this.client != null && this.client.player != null) {
-                        this.client.player.sendMessage(
-                            Text.literal("§7" + preset.getDescription()), false
+                    if (this.minecraft != null && this.minecraft.player != null) {
+                        this.minecraft.player.sendMessage(
+                            Component.literal("§7" + preset.getDescription()), false
                         );
                     }
                 }
-            ).dimensions(cx - 150, listY, 240, 20).build());
+            ).bounds(cx - 150, listY, 240, 20).build());
             
             // Apply button
-            this.addDrawableChild(ButtonWidget.builder(
-                Text.literal("§aApply"),
-                b -> slimefunManager.applyPreset(preset, this.client)
-            ).dimensions(cx + 95, listY, 55, 20).build());
+            this.addRenderableWidget(Button.builder(
+                Component.literal("§aApply"),
+                b -> slimefunManager.applyPreset(preset, this.minecraft)
+            ).bounds(cx + 95, listY, 55, 20).build());
             
             listY += 22;
         }
@@ -511,93 +511,93 @@ public class SlimefunConfigScreen extends Screen {
         int startY = 70;
         
         // Compact stats display with buttons
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§7Clicks: §f" + slimefunManager.getTotalSlimefunClicks()),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§7Clicks: §f" + slimefunManager.getTotalSlimefunClicks()),
             b -> {}
-        ).dimensions(cx - 150, startY, 145, 20).build());
+        ).bounds(cx - 150, startY, 145, 20).build());
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§7Collected: §f" + slimefunManager.getTotalItemsCollected()),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§7Collected: §f" + slimefunManager.getTotalItemsCollected()),
             b -> {}
-        ).dimensions(cx + 5, startY, 145, 20).build());
+        ).bounds(cx + 5, startY, 145, 20).build());
         
         startY += 25;
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§7Items Fed: §f" + slimefunManager.getInputFeeder().getTotalItemsFed()),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§7Items Fed: §f" + slimefunManager.getInputFeeder().getTotalItemsFed()),
             b -> {}
-        ).dimensions(cx - 150, startY, 145, 20).build());
+        ).bounds(cx - 150, startY, 145, 20).build());
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§7Recipe Items: §f" + slimefunManager.getRecipeFeeder().getTotalItemsPlaced()),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§7Recipe Items: §f" + slimefunManager.getRecipeFeeder().getTotalItemsPlaced()),
             b -> {}
-        ).dimensions(cx + 5, startY, 145, 20).build());
+        ).bounds(cx + 5, startY, 145, 20).build());
         
         startY += 35;
         
         // Action buttons
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§b📊 Full Statistics"),
-            b -> slimefunManager.showStatistics(this.client)
-        ).dimensions(cx - 150, startY, 145, 24).build());
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§b📊 Full Statistics"),
+            b -> slimefunManager.showStatistics(this.minecraft)
+        ).bounds(cx - 150, startY, 145, 24).build());
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§d📋 Status Report"),
-            b -> slimefunManager.showDetailedStatus(this.client)
-        ).dimensions(cx + 5, startY, 145, 24).build());
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§d📋 Status Report"),
+            b -> slimefunManager.showDetailedStatus(this.minecraft)
+        ).bounds(cx + 5, startY, 145, 24).build());
         
         startY += 30;
         
-        this.addDrawableChild(ButtonWidget.builder(
-            Text.literal("§e🔄 Reset All Stats"),
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§e🔄 Reset All Stats"),
             b -> {
                 slimefunManager.resetStatistics();
-                if (this.client != null && this.client.player != null) {
-                    this.client.player.sendMessage(
-                        Text.literal("§e[Slimefun] All statistics reset"), false
+                if (this.minecraft != null && this.minecraft.player != null) {
+                    this.minecraft.player.sendMessage(
+                        Component.literal("§e[Slimefun] All statistics reset"), false
                     );
                 }
-                this.clearChildren();
+                this.clearWidgets();
                 this.init();
             }
-        ).dimensions(cx - 150, startY, 300, 24).build());
+        ).bounds(cx - 150, startY, 300, 24).build());
     }
     
     // ==========================================
     // HELP
     // ==========================================
     private void showHelp() {
-        if (this.client == null || this.client.player == null) return;
+        if (this.minecraft == null || this.minecraft.player == null) return;
         
-        this.client.player.sendMessage(
-            Text.literal("§e§l=== Slimefun Quick Guide ==="), false
+        this.minecraft.player.sendMessage(
+            Component.literal("§e§l=== Slimefun Quick Guide ==="), false
         );
-        this.client.player.sendMessage(
-            Text.literal("§6Main Tab:"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("§6Main Tab:"), false
         );
-        this.client.player.sendMessage(
-            Text.literal("  §7• Enable Slimefun Mode"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("  §7• Enable Slimefun Mode"), false
         );
-        this.client.player.sendMessage(
-            Text.literal("  §7• Use Quick Setup for auto-config"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("  §7• Use Quick Setup for auto-config"), false
         );
-        this.client.player.sendMessage(
-            Text.literal("§6Automation Tab:"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("§6Automation Tab:"), false
         );
-        this.client.player.sendMessage(
-            Text.literal("  §7• Auto-Input: Feeds items to machines"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("  §7• Auto-Input: Feeds items to machines"), false
         );
-        this.client.player.sendMessage(
-            Text.literal("  §7• Auto-Recipe: Maintains crafting recipes"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("  §7• Auto-Recipe: Maintains crafting recipes"), false
         );
-        this.client.player.sendMessage(
-            Text.literal("§6Recipes Tab:"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("§6Recipes Tab:"), false
         );
-        this.client.player.sendMessage(
-            Text.literal("  §7• Browse " + SlimefunRecipeLibrary.getRecipeCount() + "+ pre-made recipes"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("  §7• Browse " + SlimefunRecipeLibrary.getRecipeCount() + "+ pre-made recipes"), false
         );
-        this.client.player.sendMessage(
-            Text.literal("  §7• Search and load instantly"), false
+        this.minecraft.player.sendMessage(
+            Component.literal("  §7• Search and load instantly"), false
         );
     }
     
@@ -605,7 +605,7 @@ public class SlimefunConfigScreen extends Screen {
     // RENDER
     // ==========================================
     @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
         // Clean gradient background
         context.fillGradient(0, 0, this.width, this.height, 0xF0101010, 0xF0181818);
         
@@ -615,15 +615,15 @@ public class SlimefunConfigScreen extends Screen {
         
         // Modern title
         context.drawCenteredTextWithShadow(
-            this.textRenderer,
-            Text.literal("§2§lSLIMEFUN §6§lAUTOMATION §e§l+"),
+            this.font,
+            Component.literal("§2§lSLIMEFUN §6§lAUTOMATION §e§l+"),
             cx, 10, 0xFFFFFF
         );
         
         // Tab description
         context.drawCenteredTextWithShadow(
-            this.textRenderer,
-            Text.literal("§7" + currentTab.description),
+            this.font,
+            Component.literal("§7" + currentTab.description),
             cx, 58, 0x888888
         );
         
@@ -640,13 +640,13 @@ public class SlimefunConfigScreen extends Screen {
         // Footer info
         String statusInfo = slimefunManager.getStatusInfo();
         context.drawCenteredTextWithShadow(
-            this.textRenderer,
-            Text.literal(statusInfo),
+            this.font,
+            Component.literal(statusInfo),
             cx, this.height - 45, 0x666666
         );
     }
     
-    private void renderMainTabInfo(DrawContext context, int cx) {
+    private void renderMainTabInfo(GuiGraphics context, int cx) {
         SlimefunDetector.SlimefunMachine current = slimefunManager.getCurrentMachine();
         
         if (current != SlimefunDetector.SlimefunMachine.UNKNOWN) {
@@ -659,8 +659,8 @@ public class SlimefunConfigScreen extends Screen {
             int y = 140;
             for (String line : lines) {
                 context.drawCenteredTextWithShadow(
-                    this.textRenderer,
-                    Text.literal("§7" + line),
+                    this.font,
+                    Component.literal("§7" + line),
                     cx, y, 0xAAAAAA
                 );
                 y += 10;
@@ -668,7 +668,7 @@ public class SlimefunConfigScreen extends Screen {
         }
     }
     
-    private void renderRecipesTabInfo(DrawContext context, int cx) {
+    private void renderRecipesTabInfo(GuiGraphics context, int cx) {
         List<RecipeFeeder.Recipe> recipes;
         
         if (!recipeSearchQuery.isEmpty()) {
@@ -681,8 +681,8 @@ public class SlimefunConfigScreen extends Screen {
         
         String info = String.format("§7Showing %d recipes", recipes.size());
         context.drawCenteredTextWithShadow(
-            this.textRenderer,
-            Text.literal(info),
+            this.font,
+            Component.literal(info),
             cx, this.height - 80, 0x666666
         );
     }
@@ -693,7 +693,7 @@ public class SlimefunConfigScreen extends Screen {
         StringBuilder currentLine = new StringBuilder();
         
         for (String word : words) {
-            if (this.textRenderer.getWidth(currentLine + " " + word) < maxWidth) {
+            if (this.font.getWidth(currentLine + " " + word) < maxWidth) {
                 if (currentLine.length() > 0) currentLine.append(" ");
                 currentLine.append(word);
             } else {
@@ -715,8 +715,8 @@ public class SlimefunConfigScreen extends Screen {
     
     @Override
     public void close() {
-        if (this.client != null) {
-            this.client.setScreen(this.parent);
+        if (this.minecraft != null) {
+            this.minecraft.setScreen(this.parent);
         }
     }
     

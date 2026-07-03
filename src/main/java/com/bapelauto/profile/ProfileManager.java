@@ -1,13 +1,16 @@
 // ============================================
 // FILE: ProfileManager.java
 // Path: src/main/java/com/bapelauto/profile/ProfileManager.java
+//
+// Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings).
+//   - player.sendMessage(...) -> player.displayClientMessage(...)
 // ============================================
 package com.bapelauto.profile;
 
 import com.bapelauto.ShardedConfigManager;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 
 import java.io.*;
 import java.nio.file.*;
@@ -20,16 +23,16 @@ import java.util.stream.Collectors;
 public class ProfileManager {
     private static final String PROFILES_DIR = "config/bapelauto/profiles";
     private static final String ACTIVE_PROFILE_FILE = "config/bapelauto/active_profile.txt";
-    
+
     private final ShardedConfigManager configManager;
     private String currentProfile = "default";
     private final Map<String, Profile> loadedProfiles = new HashMap<>();
-    
+
     public ProfileManager(ShardedConfigManager configManager) {
         this.configManager = configManager;
         initialize();
     }
-    
+
     private void initialize() {
         try {
             Files.createDirectories(Paths.get(PROFILES_DIR));
@@ -39,7 +42,7 @@ public class ProfileManager {
             System.err.println("[ProfileManager] Init failed: " + e.getMessage());
         }
     }
-    
+
     private void loadActiveProfile() {
         Path activePath = Paths.get(ACTIVE_PROFILE_FILE);
         if (Files.exists(activePath)) {
@@ -50,7 +53,7 @@ public class ProfileManager {
             }
         }
     }
-    
+
     private void saveActiveProfile() {
         try {
             Files.writeString(Paths.get(ACTIVE_PROFILE_FILE), currentProfile);
@@ -58,71 +61,71 @@ public class ProfileManager {
             System.err.println("[ProfileManager] Failed to save active profile");
         }
     }
-    
+
     public void saveProfile(String profileName, String description) {
         try {
             Profile profile = new Profile(profileName, description);
             profile.config = configManager.getAllConfig();
-            
+
             Path profilePath = Paths.get(PROFILES_DIR, profileName + ".json");
             String json = serializeProfile(profile);
             Files.writeString(profilePath, json);
-            
+
             loadedProfiles.put(profileName, profile);
-            
+
             System.out.println("[ProfileManager] Saved profile: " + profileName);
         } catch (Exception e) {
             System.err.println("[ProfileManager] Save failed: " + e.getMessage());
         }
     }
-    
-    public boolean loadProfile(String profileName, MinecraftClient client) {
+
+    public boolean loadProfile(String profileName, Minecraft client) {
         try {
             Path profilePath = Paths.get(PROFILES_DIR, profileName + ".json");
             if (!Files.exists(profilePath)) {
                 if (client.player != null) {
-                    client.player.sendMessage(Text.literal("§c[Profile] Not found: " + profileName), false);
+                    client.player.displayClientMessage(Component.literal("§c[Profile] Not found: " + profileName), false);
                 }
                 return false;
             }
-            
+
             String json = Files.readString(profilePath);
             Profile profile = deserializeProfile(json);
-            
+
             // Apply config
             profile.config.forEach(configManager::set);
             configManager.saveConfig();
-            
+
             currentProfile = profileName;
             saveActiveProfile();
             loadedProfiles.put(profileName, profile);
-            
+
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§a[Profile] Loaded: " + profileName), true);
+                client.player.displayClientMessage(Component.literal("§a[Profile] Loaded: " + profileName), true);
                 client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
             }
-            
+
             return true;
         } catch (Exception e) {
             System.err.println("[ProfileManager] Load failed: " + e.getMessage());
             return false;
         }
     }
-    
-    public void deleteProfile(String profileName, MinecraftClient client) {
+
+    public void deleteProfile(String profileName, Minecraft client) {
         try {
             Path profilePath = Paths.get(PROFILES_DIR, profileName + ".json");
             Files.deleteIfExists(profilePath);
             loadedProfiles.remove(profileName);
-            
+
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§e[Profile] Deleted: " + profileName), false);
+                client.player.displayClientMessage(Component.literal("§e[Profile] Deleted: " + profileName), false);
             }
         } catch (Exception e) {
             System.err.println("[ProfileManager] Delete failed: " + e.getMessage());
         }
     }
-    
+
     public void scanProfiles() {
         loadedProfiles.clear();
         try (var stream = Files.list(Paths.get(PROFILES_DIR))) {
@@ -140,25 +143,25 @@ public class ProfileManager {
             System.err.println("[ProfileManager] Scan failed: " + e.getMessage());
         }
     }
-    
+
     public List<Profile> getAvailableProfiles() {
         return new ArrayList<>(loadedProfiles.values());
     }
-    
+
     public String getCurrentProfile() {
         return currentProfile;
     }
-    
+
     // Quick switch profiles (cycle through)
-    public void cycleProfile(MinecraftClient client) {
+    public void cycleProfile(Minecraft client) {
         List<Profile> profiles = getAvailableProfiles();
         if (profiles.isEmpty()) {
             if (client.player != null) {
-                client.player.sendMessage(Text.literal("§c[Profile] No profiles available"), false);
+                client.player.displayClientMessage(Component.literal("§c[Profile] No profiles available"), false);
             }
             return;
         }
-        
+
         int currentIndex = -1;
         for (int i = 0; i < profiles.size(); i++) {
             if (profiles.get(i).name.equals(currentProfile)) {
@@ -166,11 +169,11 @@ public class ProfileManager {
                 break;
             }
         }
-        
+
         int nextIndex = (currentIndex + 1) % profiles.size();
         loadProfile(profiles.get(nextIndex).name, client);
     }
-    
+
     private String serializeProfile(Profile profile) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
@@ -179,7 +182,7 @@ public class ProfileManager {
         sb.append("  \"created\": ").append(profile.createdTime).append(",\n");
         sb.append("  \"modified\": ").append(profile.modifiedTime).append(",\n");
         sb.append("  \"config\": {\n");
-        
+
         List<Map.Entry<String, String>> entries = new ArrayList<>(profile.config.entrySet());
         for (int i = 0; i < entries.size(); i++) {
             Map.Entry<String, String> entry = entries.get(i);
@@ -188,16 +191,16 @@ public class ProfileManager {
             if (i < entries.size() - 1) sb.append(",");
             sb.append("\n");
         }
-        
+
         sb.append("  }\n");
         sb.append("}\n");
         return sb.toString();
     }
-    
+
     private Profile deserializeProfile(String json) {
         // Simple JSON parser (for production, use a proper JSON library)
         Profile profile = new Profile("", "");
-        
+
         String[] lines = json.split("\n");
         for (String line : lines) {
             line = line.trim();
@@ -218,10 +221,10 @@ public class ProfileManager {
                 }
             }
         }
-        
+
         return profile;
     }
-    
+
     private String extractValue(String line) {
         int start = line.indexOf('"', line.indexOf(':')) + 1;
         int end = line.lastIndexOf('"');
@@ -235,14 +238,14 @@ public class ProfileManager {
         }
         return "";
     }
-    
+
     public static class Profile {
         public String name;
         public String description;
         public long createdTime;
         public long modifiedTime;
         public Map<String, String> config;
-        
+
         public Profile(String name, String description) {
             this.name = name;
             this.description = description;
@@ -250,7 +253,7 @@ public class ProfileManager {
             this.modifiedTime = System.currentTimeMillis();
             this.config = new HashMap<>();
         }
-        
+
         @Override
         public String toString() {
             return name + " - " + description;
