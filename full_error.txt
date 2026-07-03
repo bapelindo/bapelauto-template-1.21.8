@@ -1,0 +1,10 @@
+﻿
+> Configure project :
+Fabric Loom: 1.17.13
+
+> Task :compileJava
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/apache/htdocs/minecraft/bapelauto-template-1.21.8/build/reports/problems/problems-report.html
+1 actionable task: 1 executed
