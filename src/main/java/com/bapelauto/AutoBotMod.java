@@ -5,7 +5,7 @@
 // Fixes applied against the real compiler error log (round 1):
 //   - InputConstants moved: net.minecraft.client.InputConstants
 //     -> com.mojang.blaze3d.platform.InputConstants
-//   - KeyMapping.matchesKey(key, scancode) -> KeyMapping.matches(key, scancode)
+//   - KeyMapping.matchesKey(key, scancode) -> KeyMapping.matches(event) (takes the KeyEvent directly, not two ints)
 //   - client.currentScreen -> client.screen (currentScreen does NOT exist
 //     on Minecraft in this build; confirmed by the compiler, not assumed)
 //   - client.gameMode, player.networkHandler, sendChatCommand,
