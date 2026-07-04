@@ -19,7 +19,7 @@ public class MacroRecorder {
     public void startRecording(Minecraft client) {
         if (isRecording) {
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§c[Recording] Already recording!"), false);
+                client.player.sendSystemMessage(Component.literal("§c[Recording] Already recording!"), false);
             }
             return;
         }
@@ -29,15 +29,15 @@ public class MacroRecorder {
         recordedActions.clear();
         
         if (client.player != null) {
-            client.player.sendMessage(Component.literal("§a§l[Recording] STARTED - Capture points with [-], stop with []]"), true);
-            client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 2.0F);
+            client.player.sendSystemMessage(Component.literal("§a§l[Recording] STARTED - Capture points with [-], stop with []]"), true);
+            client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 2.0F);
         }
     }
     
     public void stopRecording(Minecraft client) {
         if (!isRecording) {
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§c[Recording] Not recording!"), false);
+                client.player.sendSystemMessage(Component.literal("§c[Recording] Not recording!"), false);
             }
             return;
         }
@@ -46,14 +46,14 @@ public class MacroRecorder {
         
         if (recordedActions.isEmpty()) {
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§c[Recording] No actions recorded!"), false);
+                client.player.sendSystemMessage(Component.literal("§c[Recording] No actions recorded!"), false);
             }
             return;
         }
         
         if (client.player != null) {
-            client.player.sendMessage(Component.literal("§a§l[Recording] STOPPED - " + recordedActions.size() + " actions saved"), true);
-            client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
+            client.player.sendSystemMessage(Component.literal("§a§l[Recording] STOPPED - " + recordedActions.size() + " actions saved"), true);
+            client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
         }
     }
     

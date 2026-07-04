@@ -5,7 +5,7 @@
 // Fixes applied against the real compiler error log (round 1):
 //   - InputConstants moved: net.minecraft.client.InputConstants
 //     -> com.mojang.blaze3d.platform.InputConstants
-//   - KeyMapping.matchesKey(key, scancode) -> KeyMapping.matches(key, scancode)
+//   - KeyMapping.matchesKey(key, scancode) -> KeyMapping.matches(event) (takes the KeyEvent directly, not two ints)
 //   - client.currentScreen -> client.screen (currentScreen does NOT exist
 //     on Minecraft in this build; confirmed by the compiler, not assumed)
 //   - client.gameMode, player.networkHandler, sendChatCommand,
@@ -239,34 +239,33 @@ public class AutoBotMod implements ClientModInitializer {
                 if (!botRunning) return true;
 
                 int key = event.key();
-                int scancode = event.scancode();
 
                 // Hotkey interception
                 if (guiClickManager != null) {
-                    if (captureTargetKey.matches(key, scancode)) {
+                    if (captureTargetKey.matches(event)) {
                         guiClickManager.captureTarget(client, 100);
                         return false;
                     }
-                    if (toggleTargetKey.matches(key, scancode)) {
+                    if (toggleTargetKey.matches(event)) {
                         guiClickManager.toggle(client);
                         return false;
                     }
-                    if (recordMacroKey.matches(key, scancode)) {
+                    if (recordMacroKey.matches(event)) {
                         guiClickManager.startRecording(client);
                         return false;
                     }
-                    if (stopRecordingKey.matches(key, scancode)) {
+                    if (stopRecordingKey.matches(event)) {
                         guiClickManager.stopRecording(client);
                         return false;
                     }
                 }
 
-                if (smartDetectKey.matches(key, scancode)) {
+                if (smartDetectKey.matches(event)) {
                     performSmartDetect(client);
                     return false;
                 }
 
-                if (slimefunQuickSetupKey.matches(key, scancode)) {
+                if (slimefunQuickSetupKey.matches(event)) {
                     performSlimefunQuickSetup(client);
                     return false;
                 }
@@ -305,7 +304,7 @@ public class AutoBotMod implements ClientModInitializer {
         if (toggleOverlayKey.wasPressed() && visualOverlay != null) {
             visualOverlay.toggleAll();
             String status = visualOverlay.isEnabled() ? "§aON" : "§cOFF";
-            client.player.sendMessage(Component.literal("§e[Overlay] " + status), true);
+            client.player.sendSystemMessage(Component.literal("§e[Overlay] " + status), true);
         }
 
         if (emergencyStopKey.wasPressed()) performEmergencyStop(client);
@@ -321,11 +320,11 @@ public class AutoBotMod implements ClientModInitializer {
             lastCommandTime = System.currentTimeMillis();
 
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§a§l[AutoBot] MASTER ON"), true);
+                client.player.sendSystemMessage(Component.literal("§a§l[AutoBot] MASTER ON"), true);
                 if (slimefunManager != null && slimefunManager.isInSlimefunGUI(client)) {
-                    client.player.sendMessage(Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
+                    client.player.sendSystemMessage(Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
                 }
-                client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
+                client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
             }
         } else {
             // Disable all systems
@@ -335,8 +334,8 @@ public class AutoBotMod implements ClientModInitializer {
             commandEnabled = false;
 
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§c§l[AutoBot] MASTER OFF"), true);
-                client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 1.0F);
+                client.player.sendSystemMessage(Component.literal("§c§l[AutoBot] MASTER OFF"), true);
+                client.player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1.0F, 1.0F);
             }
         }
     }
@@ -418,7 +417,7 @@ public class AutoBotMod implements ClientModInitializer {
     private void performSlimefunQuickSetup(Minecraft client) {
         if (client.screen == null || slimefunManager == null) return;
         if (!SlimefunDetector.isSlimefunGUI(client.screen)) {
-            if (client.player != null) client.player.sendMessage(Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
+            if (client.player != null) client.player.sendSystemMessage(Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
             return;
         }
         slimefunManager.quickSetup(client);
@@ -434,8 +433,8 @@ public class AutoBotMod implements ClientModInitializer {
         if (slimefunManager != null) slimefunManager.setSlimefunModeEnabled(false);
 
         if (client.player != null) {
-            client.player.sendMessage(Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
-            client.player.playSound(SoundEvents.BLOCK_ANVIL_LAND, 1.0F, 0.8F);
+            client.player.sendSystemMessage(Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
+            client.player.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F);
         }
     }
 

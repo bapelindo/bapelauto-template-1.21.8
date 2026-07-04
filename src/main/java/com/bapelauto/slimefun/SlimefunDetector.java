@@ -242,12 +242,12 @@ public class SlimefunDetector {
         }
         
         if (client.player != null && !targets.isEmpty()) {
-            client.player.sendMessage(
+            client.player.sendSystemMessage(
                 Component.literal("§a[Slimefun] Detected " + machine.getDisplayName() + 
                            " - " + targets.size() + " output slots"), 
                 true
             );
-            client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 0.7F, 1.5F);
+            client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 0.7F, 1.5F);
         }
         
         return targets;
@@ -284,22 +284,22 @@ public class SlimefunDetector {
     public static void autoConfigureForSlimefun(Minecraft client, SlimefunMachine machine) {
         if (client.player == null) return;
         
-        client.player.sendMessage(
+        client.player.sendSystemMessage(
             Component.literal("§e§l[Slimefun Auto-Config]"), false
         );
-        client.player.sendMessage(
+        client.player.sendSystemMessage(
             Component.literal("§7Machine: §f" + machine.getDisplayName()), false
         );
-        client.player.sendMessage(
+        client.player.sendSystemMessage(
             Component.literal("§7Type: §f" + machine.getDescription()), false
         );
-        client.player.sendMessage(
+        client.player.sendSystemMessage(
             Component.literal("§7Pattern: §f" + machine.getRecommendedPattern().getDisplayName()), false
         );
-        client.player.sendMessage(
+        client.player.sendSystemMessage(
             Component.literal("§7Delay: §f" + machine.getRecommendedDelay() + "ms"), false
         );
-        client.player.sendMessage(
+        client.player.sendSystemMessage(
             Component.literal("§a✓ Press [=] to start automation"), false
         );
     }

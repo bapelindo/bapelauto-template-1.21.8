@@ -201,7 +201,7 @@ public class SlimefunConfigScreen extends Screen {
             b -> {
                 slimefunManager.resetStatistics();
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.sendMessage(
+                    this.minecraft.player.sendSystemMessage(
                         Component.literal("§e[Slimefun] Statistics reset"), false
                     );
                 }
@@ -305,7 +305,7 @@ public class SlimefunConfigScreen extends Screen {
                     recipeNameField.setText("");
                 } else {
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.sendMessage(
+                        this.minecraft.player.sendSystemMessage(
                             Component.literal("§c[Recipe] Enter a name first!"), false
                         );
                     }
@@ -423,7 +423,7 @@ public class SlimefunConfigScreen extends Screen {
                 b -> {
                     slimefunManager.getRecipeFeeder().setRecipe(recipe);
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.sendMessage(
+                        this.minecraft.player.sendSystemMessage(
                             Component.literal("§a[Recipe] Selected: " + recipe.getName()), true
                         );
                     }
@@ -486,7 +486,7 @@ public class SlimefunConfigScreen extends Screen {
                 Component.literal("§f" + preset.getName()),
                 b -> {
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.sendMessage(
+                        this.minecraft.player.sendSystemMessage(
                             Component.literal("§7" + preset.getDescription()), false
                         );
                     }
@@ -553,7 +553,7 @@ public class SlimefunConfigScreen extends Screen {
             b -> {
                 slimefunManager.resetStatistics();
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.sendMessage(
+                    this.minecraft.player.sendSystemMessage(
                         Component.literal("§e[Slimefun] All statistics reset"), false
                     );
                 }
@@ -569,34 +569,34 @@ public class SlimefunConfigScreen extends Screen {
     private void showHelp() {
         if (this.minecraft == null || this.minecraft.player == null) return;
         
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("§e§l=== Slimefun Quick Guide ==="), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("§6Main Tab:"), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("  §7• Enable Slimefun Mode"), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("  §7• Use Quick Setup for auto-config"), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("§6Automation Tab:"), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("  §7• Auto-Input: Feeds items to machines"), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("  §7• Auto-Recipe: Maintains crafting recipes"), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("§6Recipes Tab:"), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("  §7• Browse " + SlimefunRecipeLibrary.getRecipeCount() + "+ pre-made recipes"), false
         );
-        this.minecraft.player.sendMessage(
+        this.minecraft.player.sendSystemMessage(
             Component.literal("  §7• Search and load instantly"), false
         );
     }
@@ -614,14 +614,14 @@ public class SlimefunConfigScreen extends Screen {
         int cx = this.width / 2;
         
         // Modern title
-        context.drawCenteredTextWithShadow(
+        context.centeredText(
             this.font,
             Component.literal("§2§lSLIMEFUN §6§lAUTOMATION §e§l+"),
             cx, 10, 0xFFFFFF
         );
         
         // Tab description
-        context.drawCenteredTextWithShadow(
+        context.centeredText(
             this.font,
             Component.literal("§7" + currentTab.description),
             cx, 58, 0x888888
@@ -639,7 +639,7 @@ public class SlimefunConfigScreen extends Screen {
         
         // Footer info
         String statusInfo = slimefunManager.getStatusInfo();
-        context.drawCenteredTextWithShadow(
+        context.centeredText(
             this.font,
             Component.literal(statusInfo),
             cx, this.height - 45, 0x666666
@@ -658,7 +658,7 @@ public class SlimefunConfigScreen extends Screen {
             
             int y = 140;
             for (String line : lines) {
-                context.drawCenteredTextWithShadow(
+                context.centeredText(
                     this.font,
                     Component.literal("§7" + line),
                     cx, y, 0xAAAAAA
@@ -680,7 +680,7 @@ public class SlimefunConfigScreen extends Screen {
         }
         
         String info = String.format("§7Showing %d recipes", recipes.size());
-        context.drawCenteredTextWithShadow(
+        context.centeredText(
             this.font,
             Component.literal(info),
             cx, this.height - 80, 0x666666

@@ -74,7 +74,7 @@ public class VisualOverlay {
         
         // Draw target count
         String targetText = "§6Targets: " + guiClickManager.getTargetCount();
-        context.drawTextWithShadow(
+        context.text(
             client.font,
             targetText,
             5, 5,
@@ -83,7 +83,7 @@ public class VisualOverlay {
         
         // Draw mode and pattern
         String modeText = "§7Mode: §f" + guiClickManager.getCurrentMode().getDisplayName();
-        context.drawTextWithShadow(
+        context.text(
             client.font,
             modeText,
             5, 17,
@@ -91,7 +91,7 @@ public class VisualOverlay {
         );
         
         String patternText = "§7Pattern: §f" + guiClickManager.getTimingPattern().getDisplayName();
-        context.drawTextWithShadow(
+        context.text(
             client.font,
             patternText,
             5, 29,
@@ -109,7 +109,7 @@ public class VisualOverlay {
         context.fill(x - 2, y - 2, x + 150, y + 75, 0x88000000);
         
         // Title
-        context.drawTextWithShadow(
+        context.text(
             client.font,
             "§6§l[AutoBot Stats]",
             x, y,
@@ -132,7 +132,7 @@ public class VisualOverlay {
         };
         
         for (String stat : stats) {
-            context.drawTextWithShadow(
+            context.text(
                 client.font,
                 stat,
                 x, y,
@@ -152,7 +152,7 @@ public class VisualOverlay {
         
         // Status text
         String status = AutoBotMod.isRunning() ? "§a§lACTIVE" : "§c§lINACTIVE";
-        context.drawCenteredTextWithShadow(
+        context.centeredText(
             client.font,
             status,
             x + 57, y + 6,
@@ -183,7 +183,7 @@ public class VisualOverlay {
         context.fill(x, y, x + 115, y + (activeFeatures.size() * 11) + 15, 0x88000000);
         
         // Title
-        context.drawTextWithShadow(
+        context.text(
             client.font,
             "§e§lActive Features",
             x + 5, y + 3,
@@ -193,7 +193,7 @@ public class VisualOverlay {
         
         // Features list
         for (String feature : activeFeatures) {
-            context.drawTextWithShadow(
+            context.text(
                 client.font,
                 feature,
                 x + 5, y,

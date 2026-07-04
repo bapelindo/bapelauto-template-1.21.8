@@ -54,7 +54,7 @@ public class SessionDebugScreen extends Screen {
         // Force cleanup button
         this.addRenderableWidget(Button.builder(Component.literal("§e🧹 Cleanup"), b -> {
             if (this.minecraft != null && this.minecraft.player != null) {
-                this.minecraft.player.sendMessage(Component.literal("§e[Session] Running cleanup..."), false);
+                this.minecraft.player.sendSystemMessage(Component.literal("§e[Session] Running cleanup..."), false);
             }
             refreshSessions();
         }).bounds(cx - 100, btnY - 30, 90, 20).build());
@@ -63,7 +63,7 @@ public class SessionDebugScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.literal("§b📤 Export"), b -> {
             configManager.exportToGlobal();
             if (this.minecraft != null && this.minecraft.player != null) {
-                this.minecraft.player.sendMessage(Component.literal("§a[Config] Exported to global"), false);
+                this.minecraft.player.sendSystemMessage(Component.literal("§a[Config] Exported to global"), false);
             }
         }).bounds(cx + 10, btnY - 30, 90, 20).build());
     }
@@ -83,7 +83,7 @@ public class SessionDebugScreen extends Screen {
         int y = 30;
         
         // Title
-        context.drawCenteredTextWithShadow(this.font, 
+        context.centeredText(this.font, 
             Component.literal("§6§lSession Manager Debug"), cx, y, 0xFFFFFF);
         y += 20;
         
@@ -92,11 +92,11 @@ public class SessionDebugScreen extends Screen {
         String shortId = currentSessionId.length() > 30 ? 
             currentSessionId.substring(0, 30) + "..." : currentSessionId;
         
-        context.drawCenteredTextWithShadow(this.font, 
+        context.centeredText(this.font, 
             Component.literal("§aCurrent Session: §f" + shortId), cx, y, 0xAAAAAA);
         y += 15;
         
-        context.drawCenteredTextWithShadow(this.font, 
+        context.centeredText(this.font, 
             Component.literal("§aShard ID: §f" + configManager.getShardId().substring(0, 30) + "..."), cx, y, 0xAAAAAA);
         y += 25;
         
@@ -105,13 +105,13 @@ public class SessionDebugScreen extends Screen {
         y += 15;
         
         // Active sessions header
-        context.drawCenteredTextWithShadow(this.font, 
+        context.centeredText(this.font, 
             Component.literal("§e§lActive Sessions: §f" + sessions.size()), cx, y, 0xFFFF55);
         y += 20;
         
         // List sessions
         if (sessions.isEmpty()) {
-            context.drawCenteredTextWithShadow(this.font, 
+            context.centeredText(this.font, 
                 Component.literal("§7No active sessions found"), cx, y, 0x888888);
         } else {
             for (SessionManager.SessionInfo session : sessions) {
@@ -122,7 +122,7 @@ public class SessionDebugScreen extends Screen {
                 String displayId = session.sessionId.length() > 35 ? 
                     session.sessionId.substring(0, 35) + "..." : session.sessionId;
                 
-                context.drawTextWithShadow(this.font, 
+                context.text(this.font, 
                     Component.literal(prefix + displayId), 
                     cx - 190, y, isCurrent ? 0x55FF55 : 0xCCCCCC);
                 y += 12;
@@ -137,7 +137,7 @@ public class SessionDebugScreen extends Screen {
                 String details = String.format("    PID: %d | Realm: %s | Uptime: %s | Last seen: %ds ago",
                     session.pid, realm, uptimeStr, lastSeen);
                 
-                context.drawTextWithShadow(this.font, 
+                context.text(this.font, 
                     Component.literal("§7" + details), 
                     cx - 190, y, 0x888888);
                 y += 12;
@@ -145,7 +145,7 @@ public class SessionDebugScreen extends Screen {
                 // Alive status
                 String statusColor = session.isAlive() ? "§a" : "§c";
                 String statusText = session.isAlive() ? "ALIVE" : "STALE";
-                context.drawTextWithShadow(this.font, 
+                context.text(this.font, 
                     Component.literal("    Status: " + statusColor + statusText), 
                     cx - 190, y, 0x888888);
                 y += 18;
@@ -158,18 +158,18 @@ public class SessionDebugScreen extends Screen {
         y += 15;
         
         // System info
-        context.drawCenteredTextWithShadow(this.font, 
+        context.centeredText(this.font, 
             Component.literal("§b§lSystem Information"), cx, y, 0x55FFFF);
         y += 15;
         
         long currentPid = ProcessHandle.current().pid();
-        context.drawTextWithShadow(this.font, 
+        context.text(this.font, 
             Component.literal("§7Current Process ID: §f" + currentPid), 
             cx - 190, y, 0xAAAAAA);
         y += 12;
         
         String configPath = configManager.getShardId() + ".properties";
-        context.drawTextWithShadow(this.font, 
+        context.text(this.font, 
             Component.literal("§7Config File: §f" + configPath), 
             cx - 190, y, 0xAAAAAA);
         y += 12;
@@ -177,17 +177,17 @@ public class SessionDebugScreen extends Screen {
         boolean autoLoad = AutoBotMod.getRealmTracker().isEnableAutoLoad();
         boolean resetPerRealm = AutoBotMod.getRealmTracker().isEnableResetPerRealm();
         
-        context.drawTextWithShadow(this.font, 
+        context.text(this.font, 
             Component.literal("§7Auto-Load: " + (autoLoad ? "§aENABLED" : "§cDISABLED")), 
             cx - 190, y, 0xAAAAAA);
         y += 12;
         
-        context.drawTextWithShadow(this.font, 
+        context.text(this.font, 
             Component.literal("§7Reset Per Realm: " + (resetPerRealm ? "§aENABLED" : "§cDISABLED")), 
             cx - 190, y, 0xAAAAAA);
         
         // Footer
-        context.drawCenteredTextWithShadow(this.font, 
+        context.centeredText(this.font, 
             Component.literal("§7Auto-refresh every 1 second"), 
             cx, this.height - 60, 0x666666);
     }

@@ -6,7 +6,7 @@
 //   - client.player.networkHandler -> client.player.connection
 //   - connection.sendChatCommand(...) -> connection.sendCommand(...)
 //   - connection.sendChatMessage(...) -> connection.sendChat(...)
-//   - client.player.sendMessage(...) -> client.player.sendMessage(...)
+//   - client.player.sendSystemMessage(...) -> client.player.sendSystemMessage(...)
 //   - client.screen is unchanged (still correct in 26.1)
 // ============================================
 package com.bapelauto.hotkey;
@@ -128,7 +128,7 @@ public class HotkeyManager {
      * Get key name from key code
      */
     public static String getKeyName(int keyCode) {
-        return InputConstants.getKey(keyCode, 0).getDisplayName().getString();
+        return InputConstants.Type.KEYSYM.getOrCreate(keyCode).getDisplayName().getString();
     }
 
     /**
@@ -177,7 +177,7 @@ public class HotkeyManager {
                         } else {
                             client.player.connection.sendChat(actionData);
                         }
-                        client.player.sendMessage(Component.literal("§e[Hotkey] Sent: " + actionData), true);
+                        client.player.sendSystemMessage(Component.literal("§e[Hotkey] Sent: " + actionData), true);
                     }
                     break;
 
@@ -194,13 +194,13 @@ public class HotkeyManager {
                     break;
 
                 case EMERGENCY_STOP:
-                    client.player.sendMessage(Component.literal("§c§l[EMERGENCY STOP] All features disabled!"), true);
-                    client.player.playSound(net.minecraft.sounds.SoundEvents.BLOCK_ANVIL_LAND, 1.0F, 1.0F);
+                    client.player.sendSystemMessage(Component.literal("§c§l[EMERGENCY STOP] All features disabled!"), true);
+                    client.player.playSound(net.minecraft.sounds.SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
                     // This would need to call AutoBotMod methods to disable everything
                     break;
 
                 default:
-                    client.player.sendMessage(Component.literal("§e[Hotkey] " + action.getDisplayName()), true);
+                    client.player.sendSystemMessage(Component.literal("§e[Hotkey] " + action.getDisplayName()), true);
                     break;
             }
 

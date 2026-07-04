@@ -11,7 +11,7 @@
 //   - handler.containerId -> handler.containerId
 //   - client.player.containerMenu -> client.player.containerMenu
 //   - .getCarried() -> .getCarried()
-//   - player.sendMessage(...) -> player.sendMessage(...)
+//   - player.sendSystemMessage(...) -> player.sendSystemMessage(...)
 // ============================================
 package com.bapelauto.slimefun;
 
@@ -20,7 +20,16 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
+// TODO(UNRESOLVED): ClickType was removed in this MC version.
+// AbstractContainerMenu.clicked() now takes a "ContainerInput" object
+// (confirmed real: net.minecraft.world.inventory.ContainerInput) instead of
+// (mouseButton, ClickType). MultiPlayerGameMode.handleInventoryMouseClick(...)
+// almost certainly changed to match. Please open ContainerInput in your IDE
+// (Ctrl+Click on MultiPlayerGameMode.handleInventoryMouseClick) to see its
+// real parameter list and any static factory methods (e.g. something like
+// ContainerInput.click(...)), then replace every ClickType.PICKUP /
+// ClickType.QUICK_MOVE usage below with the equivalent ContainerInput value.
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -145,7 +154,7 @@ public class SlimefunInputFeeder {
                     totalItemsFed++;
 
                     if (client.player != null) {
-                        client.player.sendMessage(
+                        client.player.sendSystemMessage(
                             Component.literal("§a[Auto-Input] Fed " + stack.getItem().getName().getString() +
                                        " to " + machine.getDisplayName()),
                             true
@@ -196,7 +205,7 @@ public class SlimefunInputFeeder {
 
         if (!INPUT_SLOTS.containsKey(machine)) {
             if (client.player != null) {
-                client.player.sendMessage(
+                client.player.sendSystemMessage(
                     Component.literal("§c[Auto-Input] Machine type not supported: " + machine.getDisplayName()),
                     false
                 );
@@ -205,14 +214,14 @@ public class SlimefunInputFeeder {
         }
 
         if (client.player != null) {
-            client.player.sendMessage(
+            client.player.sendSystemMessage(
                 Component.literal("§a[Auto-Input] Configured for " + machine.getDisplayName()),
                 true
             );
 
             List<String> items = REQUIRED_ITEMS.get(machine);
             if (items != null && !items.isEmpty()) {
-                client.player.sendMessage(
+                client.player.sendSystemMessage(
                     Component.literal("§7Required items: §f" + String.join(", ", items)),
                     false
                 );

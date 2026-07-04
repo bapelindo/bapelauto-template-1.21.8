@@ -3,7 +3,7 @@
 // Path: src/main/java/com/bapelauto/profile/ProfileManager.java
 //
 // Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings).
-//   - player.sendMessage(...) -> player.sendMessage(...)
+//   - player.sendSystemMessage(...) -> player.sendSystemMessage(...)
 // ============================================
 package com.bapelauto.profile;
 
@@ -84,7 +84,7 @@ public class ProfileManager {
             Path profilePath = Paths.get(PROFILES_DIR, profileName + ".json");
             if (!Files.exists(profilePath)) {
                 if (client.player != null) {
-                    client.player.sendMessage(Component.literal("§c[Profile] Not found: " + profileName), false);
+                    client.player.sendSystemMessage(Component.literal("§c[Profile] Not found: " + profileName), false);
                 }
                 return false;
             }
@@ -101,8 +101,8 @@ public class ProfileManager {
             loadedProfiles.put(profileName, profile);
 
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§a[Profile] Loaded: " + profileName), true);
-                client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
+                client.player.sendSystemMessage(Component.literal("§a[Profile] Loaded: " + profileName), true);
+                client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
             }
 
             return true;
@@ -119,7 +119,7 @@ public class ProfileManager {
             loadedProfiles.remove(profileName);
 
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§e[Profile] Deleted: " + profileName), false);
+                client.player.sendSystemMessage(Component.literal("§e[Profile] Deleted: " + profileName), false);
             }
         } catch (Exception e) {
             System.err.println("[ProfileManager] Delete failed: " + e.getMessage());
@@ -157,7 +157,7 @@ public class ProfileManager {
         List<Profile> profiles = getAvailableProfiles();
         if (profiles.isEmpty()) {
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§c[Profile] No profiles available"), false);
+                client.player.sendSystemMessage(Component.literal("§c[Profile] No profiles available"), false);
             }
             return;
         }
