@@ -105,7 +105,7 @@ public class ConditionalAction {
                 break;
                 
             case HUNGER_BELOW:
-                conditionMet = player.getHungerManager().getFoodLevel() < threshold;
+                conditionMet = player.getFoodData().getFoodLevel() < threshold;
                 break;
                 
             case INVENTORY_FULL:
@@ -121,11 +121,11 @@ public class ConditionalAction {
                 break;
                 
             case IN_COMBAT:
-                conditionMet = player.getAttacker() != null;
+                conditionMet = player.getLastHurtByMob() != null;
                 break;
                 
             case NOT_IN_COMBAT:
-                conditionMet = player.getAttacker() == null;
+                conditionMet = player.getLastHurtByMob() == null;
                 break;
                 
             default:

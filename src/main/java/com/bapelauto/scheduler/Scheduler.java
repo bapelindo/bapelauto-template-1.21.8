@@ -6,7 +6,7 @@
 //   - player.networkHandler -> player.connection
 //   - connection.sendChatCommand(...) -> connection.sendCommand(...)
 //   - connection.sendChatMessage(...) -> connection.sendChat(...)
-//   - player.sendMessage(...) -> player.displayClientMessage(...)
+//   - player.sendMessage(...) -> player.sendMessage(...)
 // ============================================
 package com.bapelauto.scheduler;
 
@@ -212,7 +212,7 @@ public class Scheduler {
 
                 case SEND_MESSAGE:
                     if (actionData != null) {
-                        client.player.displayClientMessage(Component.literal("§e[Scheduler] " + actionData), false);
+                        client.player.sendMessage(Component.literal("§e[Scheduler] " + actionData), false);
                     }
                     break;
 

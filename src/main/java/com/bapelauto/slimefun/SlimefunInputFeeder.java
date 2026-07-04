@@ -6,12 +6,12 @@
 //   - net.minecraft.item.Item -> net.minecraft.world.item.Item (correct
 //     vanilla package; the old import path was already wrong even on
 //     1.21.x - kept only if actually used, otherwise removed as unused)
-//   - client.interactionManager -> client.gameMode
-//   - screen.getScreenHandler() -> screen.getMenu()
-//   - handler.syncId -> handler.containerId
-//   - client.player.currentScreenHandler -> client.player.containerMenu
-//   - .getCursorStack() -> .getCarried()
-//   - player.sendMessage(...) -> player.displayClientMessage(...)
+//   - client.gameMode -> client.gameMode
+//   - screen.getMenu() -> screen.getMenu()
+//   - handler.containerId -> handler.containerId
+//   - client.player.containerMenu -> client.player.containerMenu
+//   - .getCarried() -> .getCarried()
+//   - player.sendMessage(...) -> player.sendMessage(...)
 // ============================================
 package com.bapelauto.slimefun;
 
@@ -20,7 +20,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -69,7 +69,7 @@ public class SlimefunInputFeeder {
      */
     public void tick(Minecraft client, SlimefunDetector.SlimefunMachine machine) {
         if (!enabled) return;
-        if (client.currentScreen == null || !(client.currentScreen instanceof AbstractContainerScreen)) return;
+        if (client.screen == null || !(client.screen instanceof AbstractContainerScreen)) return;
         if (client.gameMode == null || client.player == null) return;
 
         long currentTime = System.currentTimeMillis();
@@ -77,7 +77,7 @@ public class SlimefunInputFeeder {
 
         currentMachine = machine;
 
-        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.screen;
         AbstractContainerMenu handler = screen.getMenu();
 
         // Check if input slots need items
@@ -145,7 +145,7 @@ public class SlimefunInputFeeder {
                     totalItemsFed++;
 
                     if (client.player != null) {
-                        client.player.displayClientMessage(
+                        client.player.sendMessage(
                             Component.literal("§a[Auto-Input] Fed " + stack.getItem().getName().getString() +
                                        " to " + machine.getDisplayName()),
                             true
@@ -196,7 +196,7 @@ public class SlimefunInputFeeder {
 
         if (!INPUT_SLOTS.containsKey(machine)) {
             if (client.player != null) {
-                client.player.displayClientMessage(
+                client.player.sendMessage(
                     Component.literal("§c[Auto-Input] Machine type not supported: " + machine.getDisplayName()),
                     false
                 );
@@ -205,14 +205,14 @@ public class SlimefunInputFeeder {
         }
 
         if (client.player != null) {
-            client.player.displayClientMessage(
+            client.player.sendMessage(
                 Component.literal("§a[Auto-Input] Configured for " + machine.getDisplayName()),
                 true
             );
 
             List<String> items = REQUIRED_ITEMS.get(machine);
             if (items != null && !items.isEmpty()) {
-                client.player.displayClientMessage(
+                client.player.sendMessage(
                     Component.literal("§7Required items: §f" + String.join(", ", items)),
                     false
                 );
@@ -224,9 +224,9 @@ public class SlimefunInputFeeder {
      * Smart detection - automatically configure based on open GUI
      */
     public void autoDetectAndConfigure(Minecraft client) {
-        if (client.currentScreen == null) return;
+        if (client.screen == null) return;
 
-        SlimefunDetector.SlimefunMachine detected = SlimefunDetector.detectMachineType(client.currentScreen);
+        SlimefunDetector.SlimefunMachine detected = SlimefunDetector.detectMachineType(client.screen);
 
         if (detected != SlimefunDetector.SlimefunMachine.UNKNOWN) {
             configureForMachine(client, detected);

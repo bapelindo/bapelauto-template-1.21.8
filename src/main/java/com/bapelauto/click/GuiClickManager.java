@@ -35,13 +35,13 @@ public class GuiClickManager {
     private int currentBurstCounter = 0;
     
     public void captureTarget(Minecraft client, long defaultDelay) {
-        if (client.currentScreen == null) return;
+        if (client.screen == null) return;
         
         ClickTarget newTarget = null;
         
         // Try to capture slot first
-        if (client.currentScreen instanceof AbstractContainerScreen) {
-            Slot slot = getFocusedSlot((AbstractContainerScreen<?>) client.currentScreen);
+        if (client.screen instanceof AbstractContainerScreen) {
+            Slot slot = getFocusedSlot((AbstractContainerScreen<?>) client.screen);
             if (slot != null) {
                 newTarget = new ClickTarget(slot.id, defaultDelay);
                 if (client.player != null) {
@@ -137,7 +137,7 @@ public class GuiClickManager {
     
     public void tick(Minecraft client) {
         if (!isActive || capturedTargets.isEmpty()) return;
-        if (client.currentScreen == null) return;
+        if (client.screen == null) return;
         
         long currentTime = System.currentTimeMillis();
         long effectiveDelay = timingPattern.calculateDelay(

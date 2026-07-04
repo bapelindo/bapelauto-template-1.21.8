@@ -402,9 +402,9 @@ public class SlimefunProfilePresets {
      * Quick apply - detect machine and apply best preset
      */
     public static void quickApply(Minecraft client) {
-        if (client.currentScreen == null) return;
+        if (client.screen == null) return;
         
-        SlimefunDetector.SlimefunMachine machine = SlimefunDetector.detectMachineType(client.currentScreen);
+        SlimefunDetector.SlimefunMachine machine = SlimefunDetector.detectMachineType(client.screen);
         
         if (machine == SlimefunDetector.SlimefunMachine.UNKNOWN) {
             if (client.player != null) {

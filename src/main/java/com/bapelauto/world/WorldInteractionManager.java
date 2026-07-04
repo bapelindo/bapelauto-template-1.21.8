@@ -24,7 +24,7 @@ public class WorldInteractionManager {
     private int totalClicks = 0;
     
     public void tick(Minecraft client) {
-        if (client.player == null || client.world == null) return;
+        if (client.player == null || client.level == null) return;
         
         long currentTime = System.currentTimeMillis();
         
@@ -40,15 +40,15 @@ public class WorldInteractionManager {
     }
     
     private void performLeftClick(Minecraft client) {
-        if (client.interactionManager == null || client.player == null) return;
+        if (client.gameMode == null || client.player == null) return;
         
         try {
-            client.player.swingHand(InteractionHand.MAIN_HAND);
-            if (client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.ENTITY) {
-                client.interactionManager.attackEntity(client.player, ((EntityHitResult)client.crosshairTarget).getEntity());
-            } else if (client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
-                BlockHitResult bh = (BlockHitResult) client.crosshairTarget;
-                client.interactionManager.attackBlock(bh.getBlockPos(), bh.getSide());
+            client.player.swing(InteractionHand.MAIN_HAND);
+            if (client.hitResult != null && client.hitResult.getType() == HitResult.Type.ENTITY) {
+                client.gameMode.attack(client.player, ((EntityHitResult)client.hitResult).getEntity());
+            } else if (client.hitResult != null && client.hitResult.getType() == HitResult.Type.BLOCK) {
+                BlockHitResult bh = (BlockHitResult) client.hitResult;
+                client.gameMode.startDestroyBlock(bh.getBlockPos(), bh.getDirection());
             }
             totalClicks++;
         } catch (Exception e) {
@@ -57,18 +57,18 @@ public class WorldInteractionManager {
     }
     
     private void performRightClick(Minecraft client) {
-        if (client.interactionManager == null || client.player == null) return;
+        if (client.gameMode == null || client.player == null) return;
         
         try {
             boolean actionTaken = false;
-            if (client.crosshairTarget != null && client.crosshairTarget.getType() == HitResult.Type.BLOCK) {
-                if (client.interactionManager.interactBlock(client.player, InteractionHand.MAIN_HAND, (BlockHitResult)client.crosshairTarget).isAccepted()) {
-                    client.player.swingHand(InteractionHand.MAIN_HAND);
+            if (client.hitResult != null && client.hitResult.getType() == HitResult.Type.BLOCK) {
+                if (client.gameMode.useItemOn(client.player, InteractionHand.MAIN_HAND, (BlockHitResult)client.hitResult).consumesAction()) {
+                    client.player.swing(InteractionHand.MAIN_HAND);
                     actionTaken = true;
                 }
             }
             if (!actionTaken) {
-                client.interactionManager.interactItem(client.player, InteractionHand.MAIN_HAND);
+                client.gameMode.useItem(client.player, InteractionHand.MAIN_HAND);
             }
             totalClicks++;
         } catch (Exception e) {

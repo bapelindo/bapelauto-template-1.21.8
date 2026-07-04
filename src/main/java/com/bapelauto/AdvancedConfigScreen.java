@@ -175,7 +175,7 @@ public class AdvancedConfigScreen extends Screen {
                 if (name != null && !name.trim().isEmpty()) {
                     profileManager.saveProfile(name, desc);
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.displayClientMessage(
+                        this.minecraft.player.sendMessage(
                             Component.literal("§a[Profile] Saved: " + name), true
                         );
                     }
@@ -316,7 +316,7 @@ public class AdvancedConfigScreen extends Screen {
             Component.literal("§a+ Add Task (See Guide)"),
             b -> {
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.displayClientMessage(
+                    this.minecraft.player.sendMessage(
                         Component.literal("§e[Scheduler] Use code to add tasks - see Quick Start Guide"), false
                     );
                 }
@@ -365,7 +365,7 @@ public class AdvancedConfigScreen extends Screen {
             Component.literal("§a+ Add Conditional (See Guide)"),
             b -> {
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.displayClientMessage(
+                    this.minecraft.player.sendMessage(
                         Component.literal("§e[Conditional] Use code to add - see Quick Start Guide"), false
                     );
                 }
@@ -415,7 +415,7 @@ public class AdvancedConfigScreen extends Screen {
             Component.literal("§a+ Add Hotkey (See Guide)"),
             b -> {
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.displayClientMessage(
+                    this.minecraft.player.sendMessage(
                         Component.literal("§e[Hotkey] Use code to add - see Quick Start Guide"), false
                     );
                 }

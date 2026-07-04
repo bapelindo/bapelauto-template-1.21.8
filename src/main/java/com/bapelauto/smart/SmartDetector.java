@@ -7,7 +7,7 @@ package com.bapelauto.smart;
 import com.bapelauto.click.ClickTarget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screen.ingame.*;
+import net.minecraft.client.gui.screens.inventory.*;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -76,11 +76,11 @@ public class SmartDetector {
     public static List<ClickTarget> autoDetectTargets(Minecraft client) {
         List<ClickTarget> targets = new ArrayList<>();
         
-        if (!(client.currentScreen instanceof AbstractContainerScreen)) {
+        if (!(client.screen instanceof AbstractContainerScreen)) {
             return targets;
         }
         
-        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.screen;
         GuiType guiType = detectGuiType(screen);
         
         switch (guiType) {
@@ -120,12 +120,12 @@ public class SmartDetector {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Detect all container slots (not player inventory)
-        int totalSlots = screen.getScreenHandler().slots.size();
+        int totalSlots = screen.getMenu().slots.size();
         int containerEnd = Math.max(0, totalSlots - 36);
         
         for (int i = 0; i < containerEnd; i++) {
-            Slot slot = screen.getScreenHandler().getSlot(i);
-            if (slot.hasStack()) {
+            Slot slot = screen.getMenu().getSlot(i);
+            if (slot.hasItem()) {
                 targets.add(new ClickTarget(slot.id, 100));
             }
         }
@@ -138,7 +138,7 @@ public class SmartDetector {
         
         // Furnace slots: 0=input, 1=fuel, 2=output
         // Auto-click output slot repeatedly
-        if (screen.getScreenHandler().slots.size() > 2) {
+        if (screen.getMenu().slots.size() > 2) {
             targets.add(new ClickTarget(2, 150)); // Output slot
         }
         
@@ -149,7 +149,7 @@ public class SmartDetector {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Crafting output slot (slot 0 in crafting table)
-        if (screen.getScreenHandler().slots.size() > 0) {
+        if (screen.getMenu().slots.size() > 0) {
             targets.add(new ClickTarget(0, 120)); // Result slot
         }
         
@@ -160,7 +160,7 @@ public class SmartDetector {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Merchant result slot (slot 2)
-        if (screen.getScreenHandler().slots.size() > 2) {
+        if (screen.getMenu().slots.size() > 2) {
             targets.add(new ClickTarget(2, 200)); // Trade result slot
         }
         
@@ -180,8 +180,8 @@ public class SmartDetector {
         List<ClickTarget> targets = new ArrayList<>();
         
         // Detect all slots with items
-        for (Slot slot : screen.getScreenHandler().slots) {
-            if (slot.hasStack()) {
+        for (Slot slot : screen.getMenu().slots) {
+            if (slot.hasItem()) {
                 targets.add(new ClickTarget(slot.id, 100));
             }
         }

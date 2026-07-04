@@ -199,7 +199,7 @@ public class SlimefunDetector {
      * Detect by slot pattern (Slimefun machines typically have specific layouts)
      */
     private static boolean detectBySlotPattern(AbstractContainerScreen<?> screen) {
-        int totalSlots = screen.getScreenHandler().slots.size();
+        int totalSlots = screen.getMenu().slots.size();
         
         // Slimefun machines typically have 54 slots (27 machine + 27 player)
         // or 45 slots (9 machine + 36 player)
@@ -213,11 +213,11 @@ public class SlimefunDetector {
     public static List<ClickTarget> autoDetectSlimefunTargets(Minecraft client, SlimefunMachine machine) {
         List<ClickTarget> targets = new ArrayList<>();
         
-        if (!(client.currentScreen instanceof AbstractContainerScreen)) {
+        if (!(client.screen instanceof AbstractContainerScreen)) {
             return targets;
         }
         
-        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.screen;
         
         // Use predefined output slots if available
         int[] outputSlots = machine.getOutputSlots();
@@ -227,12 +227,12 @@ public class SlimefunDetector {
             }
         } else {
             // Fallback: detect slots with items (likely outputs)
-            int totalSlots = screen.getScreenHandler().slots.size();
+            int totalSlots = screen.getMenu().slots.size();
             int machineEnd = Math.max(0, totalSlots - 36); // Exclude player inventory
             
             for (int i = 0; i < machineEnd; i++) {
-                Slot slot = screen.getScreenHandler().getSlot(i);
-                if (slot.hasStack()) {
+                Slot slot = screen.getMenu().getSlot(i);
+                if (slot.hasItem()) {
                     // Check if slot looks like output (right side or bottom-right area)
                     if (isLikelyOutputSlot(i, machineEnd)) {
                         targets.add(new ClickTarget(i, machine.getRecommendedDelay()));

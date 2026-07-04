@@ -3,10 +3,10 @@
 // Path: src/main/java/com/bapelauto/inventory/InventoryManager.java
 //
 // Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings).
-//   - client.interactionManager -> client.gameMode
-//   - screen.getScreenHandler() -> screen.getMenu()
-//   - handler.syncId -> handler.containerId
-//   - slot.hasStack()/getStack() -> slot.hasItem()/getItem()
+//   - client.gameMode -> client.gameMode
+//   - screen.getMenu() -> screen.getMenu()
+//   - handler.containerId -> handler.containerId
+//   - slot.hasItem()/getStack() -> slot.hasItem()/getItem()
 // ============================================
 package com.bapelauto.inventory;
 
@@ -15,7 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
 import net.minecraft.sounds.SoundEvents;
 
 public class InventoryManager {
@@ -80,7 +80,7 @@ public class InventoryManager {
     }
 
     public static void performSingleSteal(Minecraft client) {
-        if (client.player == null || !(client.currentScreen instanceof AbstractContainerScreen<?> screen)) return;
+        if (client.player == null || !(client.screen instanceof AbstractContainerScreen<?> screen)) return;
 
         try {
             AbstractContainerMenu handler = screen.getMenu();
@@ -105,7 +105,7 @@ public class InventoryManager {
     }
 
     public static void performSingleStore(Minecraft client) {
-        if (client.player == null || !(client.currentScreen instanceof AbstractContainerScreen<?> screen)) return;
+        if (client.player == null || !(client.screen instanceof AbstractContainerScreen<?> screen)) return;
 
         try {
             AbstractContainerMenu handler = screen.getMenu();

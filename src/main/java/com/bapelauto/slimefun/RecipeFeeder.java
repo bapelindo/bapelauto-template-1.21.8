@@ -6,11 +6,11 @@ package com.bapelauto.slimefun;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -50,7 +50,7 @@ public class RecipeFeeder {
                 if (slotId >= handler.slots.size()) return false;
                 
                 Slot slot = handler.getSlot(slotId);
-                if (!matcher.matches(slot.getStack())) {
+                if (!matcher.matches(slot.getItem())) {
                     return false;
                 }
             }
@@ -70,7 +70,7 @@ public class RecipeFeeder {
                 if (slotId >= handler.slots.size()) continue;
                 
                 Slot slot = handler.getSlot(slotId);
-                ItemStack currentStack = slot.getStack();
+                ItemStack currentStack = slot.getItem();
                 
                 if (!matcher.matches(currentStack)) {
                     int needed = matcher.getRequiredCount();
@@ -183,15 +183,15 @@ public class RecipeFeeder {
      */
     public void tick(Minecraft client) {
         if (!enabled) return;
-        if (client.currentScreen == null || !(client.currentScreen instanceof AbstractContainerScreen)) return;
-        if (client.interactionManager == null || client.player == null) return;
+        if (client.screen == null || !(client.screen instanceof AbstractContainerScreen)) return;
+        if (client.gameMode == null || client.player == null) return;
         if (currentRecipe == null) return;
         
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastFeedTime < feedDelay) return;
         
-        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
-        AbstractContainerMenu handler = screen.getScreenHandler();
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.screen;
+        AbstractContainerMenu handler = screen.getMenu();
         
         // Check if recipe is complete
         if (currentRecipe.isComplete(handler)) {
@@ -234,9 +234,9 @@ public class RecipeFeeder {
             if (i >= handler.slots.size()) break;
             
             Slot playerSlot = handler.getSlot(i);
-            if (!playerSlot.hasStack()) continue;
+            if (!playerSlot.hasItem()) continue;
             
-            ItemStack stack = playerSlot.getStack();
+            ItemStack stack = playerSlot.getItem();
             
             // Check if this item matches what we need
             if (missing.matcher.matchesPartial(stack)) {
@@ -247,14 +247,14 @@ public class RecipeFeeder {
                     // Pick up items from player inventory
                     if (toTake == stack.getCount()) {
                         // Take all
-                        client.interactionManager.clickSlot(
-                            handler.syncId, i, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleInventoryMouseClick(
+                            handler.containerId, i, 0, ClickType.PICKUP, client.player
                         );
                     } else {
                         // Take partial (right-click to take half, or shift-click logic)
                         // For simplicity, take all and put back extra
-                        client.interactionManager.clickSlot(
-                            handler.syncId, i, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleInventoryMouseClick(
+                            handler.containerId, i, 0, ClickType.PICKUP, client.player
                         );
                     }
                     
@@ -262,22 +262,22 @@ public class RecipeFeeder {
                     int targetSlot = missing.slotId;
                     Slot recipeSlot = handler.getSlot(targetSlot);
                     
-                    if (recipeSlot.getStack().isEmpty()) {
+                    if (recipeSlot.getItem().isEmpty()) {
                         // Slot is empty, place item
-                        client.interactionManager.clickSlot(
-                            handler.syncId, targetSlot, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleInventoryMouseClick(
+                            handler.containerId, targetSlot, 0, ClickType.PICKUP, client.player
                         );
                     } else {
                         // Slot has items, add to stack
-                        client.interactionManager.clickSlot(
-                            handler.syncId, targetSlot, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleInventoryMouseClick(
+                            handler.containerId, targetSlot, 0, ClickType.PICKUP, client.player
                         );
                     }
                     
                     // Put back any remaining items
-                    if (!client.player.currentScreenHandler.getCursorStack().isEmpty()) {
-                        client.interactionManager.clickSlot(
-                            handler.syncId, i, 0, ClickType.PICKUP, client.player
+                    if (!client.player.containerMenu.getCarried().isEmpty()) {
+                        client.gameMode.handleInventoryMouseClick(
+                            handler.containerId, i, 0, ClickType.PICKUP, client.player
                         );
                     }
                     
@@ -306,12 +306,12 @@ public class RecipeFeeder {
      * Learn recipe from current crafting grid state
      */
     public Recipe learnRecipe(Minecraft client, String recipeName) {
-        if (!(client.currentScreen instanceof AbstractContainerScreen)) {
+        if (!(client.screen instanceof AbstractContainerScreen)) {
             return null;
         }
         
-        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
-        AbstractContainerMenu handler = screen.getScreenHandler();
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.screen;
+        AbstractContainerMenu handler = screen.getMenu();
         
         Map<Integer, ItemMatcher> learned = new HashMap<>();
         
@@ -323,8 +323,8 @@ public class RecipeFeeder {
             if (slotId >= handler.slots.size()) continue;
             
             Slot slot = handler.getSlot(slotId);
-            if (slot.hasStack()) {
-                ItemStack stack = slot.getStack();
+            if (slot.hasItem()) {
+                ItemStack stack = slot.getItem();
                 String itemName = stack.getItem().toString().toLowerCase();
                 learned.put(slotId, new ItemMatcher(itemName, stack.getCount()));
             }

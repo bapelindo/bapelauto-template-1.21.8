@@ -6,16 +6,16 @@ package com.bapelauto.click;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
 
 public class ClickExecutor {
     private int totalClicks = 0;
     
     public boolean executeClick(Minecraft client, ClickTarget target) {
         try {
-            if (target.type == ClickTarget.Type.SLOT && client.currentScreen instanceof AbstractContainerScreen) {
-                return clickSlot(client, (AbstractContainerScreen<?>) client.currentScreen, target.slotId);
-            } else if (target.type == ClickTarget.Type.POINT && client.currentScreen != null) {
+            if (target.type == ClickTarget.Type.SLOT && client.screen instanceof AbstractContainerScreen) {
+                return clickSlot(client, (AbstractContainerScreen<?>) client.screen, target.slotId);
+            } else if (target.type == ClickTarget.Type.POINT && client.screen != null) {
                 return clickPoint(client, target.x, target.y);
             }
         } catch (Exception e) {
@@ -25,12 +25,12 @@ public class ClickExecutor {
     }
     
     private boolean clickSlot(Minecraft client, AbstractContainerScreen<?> screen, int slotId) {
-        if (client.interactionManager == null || client.player == null) return false;
+        if (client.gameMode == null || client.player == null) return false;
         
         try {
-            if (slotId >= 0 && slotId < screen.getScreenHandler().slots.size()) {
-                client.interactionManager.clickSlot(
-                    screen.getScreenHandler().syncId,
+            if (slotId >= 0 && slotId < screen.getMenu().slots.size()) {
+                client.gameMode.handleInventoryMouseClick(
+                    screen.getMenu().containerId,
                     slotId,
                     0, 
                     ClickType.PICKUP, 
@@ -46,11 +46,11 @@ public class ClickExecutor {
     }
     
     private boolean clickPoint(Minecraft client, double x, double y) {
-        if (client.currentScreen == null) return false;
+        if (client.screen == null) return false;
         
         try {
-            client.currentScreen.mouseClicked(x, y, 0);
-            client.currentScreen.mouseReleased(x, y, 0);
+            client.screen.mouseClicked(x, y, 0);
+            client.screen.mouseReleased(x, y, 0);
             totalClicks++;
             return true;
         } catch (Exception e) {

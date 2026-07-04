@@ -2,23 +2,21 @@
 // FILE: AutoBotMod.java (FIXED GLFW CRASH + PORTED TO 26.1.2)
 // Path: src/main/java/com/bapelauto/AutoBotMod.java
 //
-// Key changes from the 1.21.x version:
-//   - KeyBindingHelper (net.fabricmc.fabric.api.client.keybinding.v1)
-//     -> KeyMappingHelper (net.fabricmc.fabric.api.client.keymapping.v1),
-//     registerKeyBinding(...) -> registerKeyMapping(...)
-//     (confirmed rename, Fabric API 26.1 porting guide)
-//   - client.interactionManager -> client.gameMode (Mojang mapping name)
-//   - player.networkHandler -> player.connection (Mojang mapping name)
-//   - connection.sendChatCommand(...) -> connection.sendCommand(...)
-//   - connection.sendChatMessage(...) -> connection.sendChat(...)
-//   - player.sendMessage(...) -> player.displayClientMessage(...)
-//   - client.currentScreen is unchanged (still the correct Mojang field
-//     name in 26.1, confirmed via Fabric's own docs example).
+// Fixes applied against the real compiler error log (round 1):
+//   - InputConstants moved: net.minecraft.client.InputConstants
+//     -> com.mojang.blaze3d.platform.InputConstants
+//   - KeyMapping.matchesKey(key, scancode) -> KeyMapping.matches(key, scancode)
+//   - client.currentScreen -> client.screen (currentScreen does NOT exist
+//     on Minecraft in this build; confirmed by the compiler, not assumed)
+//   - client.gameMode, player.networkHandler, sendChatCommand,
+//     sendChatMessage were NOT reported as errors anywhere they're used
+//     in this codebase, so they were left untouched (evidence says they
+//     are valid in this build, despite looking like older Fabric/Yarn names).
 //
-// NOTE: ScreenEvents / ScreenKeyboardEvents were not in Fabric API's
-// published 26.1 rename list, so their names are kept as-is - but I
-// could not verify this against a live build. If your IDE flags these,
-// check the Fabric API 26.1 porting guide for the current names.
+// NOTE: this port targets Minecraft 26.1.2, which is beyond the
+// assistant's training data. Fixes above are backed by the actual
+// compiler errors provided. Anything not covered by a real error message
+// was deliberately left alone rather than guessed at.
 // ============================================
 package com.bapelauto;
 
@@ -43,10 +41,13 @@ import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.InputConstants;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import org.lwjgl.glfw.GLFW;
 
@@ -76,6 +77,13 @@ public class AutoBotMod implements ClientModInitializer {
 
     // Slimefun Manager
     private static SlimefunAutoManager slimefunManager;
+
+    // Keybinding categories (KeyMapping category changed from a plain String to a
+    // registered KeyMapping.Category object in this Minecraft version)
+    private static final KeyMapping.Category CATEGORY =
+        KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID, "main"));
+    private static final KeyMapping.Category SLIMEFUN_CATEGORY =
+        KeyMapping.Category.register(Identifier.fromNamespaceAndPath(MOD_ID, "slimefun"));
 
     // Keybindings
     private static KeyMapping toggleBotKey;
@@ -189,33 +197,33 @@ public class AutoBotMod implements ClientModInitializer {
     private void registerKeybindings() {
         // Core
         toggleBotKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.toggle", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_0, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.toggle", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_0, CATEGORY));
         openConfigKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_HOME, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_HOME, CATEGORY));
         captureTargetKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.capture", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.capture", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_MINUS, CATEGORY));
         toggleTargetKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.activate_target", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.activate_target", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_EQUAL, CATEGORY));
         recordMacroKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.record", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_BRACKET, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.record", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_BRACKET, CATEGORY));
         stopRecordingKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.stop_record", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.stop_record", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, CATEGORY));
 
         // Advanced
         smartDetectKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.smart_detect", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_BACKSLASH, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.smart_detect", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_BACKSLASH, CATEGORY));
         cycleProfileKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.cycle_profile", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_P, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.cycle_profile", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_P, CATEGORY));
         toggleOverlayKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.toggle_overlay", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.toggle_overlay", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, CATEGORY));
         emergencyStopKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.emergency_stop", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_END, "category.bapelauto"));
+            new KeyMapping("key.bapelauto.emergency_stop", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_END, CATEGORY));
 
         // Slimefun
         slimefunQuickSetupKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.slimefun_quick", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, "category.bapelauto.slimefun"));
+            new KeyMapping("key.bapelauto.slimefun_quick", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_BRACKET, SLIMEFUN_CATEGORY));
         openSlimefunConfigKey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.bapelauto.slimefun_config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_INSERT, "category.bapelauto.slimefun"));
+            new KeyMapping("key.bapelauto.slimefun_config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_INSERT, SLIMEFUN_CATEGORY));
     }
 
     private void registerEvents() {
@@ -227,35 +235,38 @@ public class AutoBotMod implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> { if (slimefunManager != null) slimefunManager.tick(client); });
 
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            ScreenKeyboardEvents.allowKeyPress(screen).register((_screen, key, scancode, modifiers) -> {
+            ScreenKeyboardEvents.allowKeyPress(screen).register((_screen, event) -> {
                 if (!botRunning) return true;
+
+                int key = event.key();
+                int scancode = event.scancode();
 
                 // Hotkey interception
                 if (guiClickManager != null) {
-                    if (captureTargetKey.matchesKey(key, scancode)) {
+                    if (captureTargetKey.matches(key, scancode)) {
                         guiClickManager.captureTarget(client, 100);
                         return false;
                     }
-                    if (toggleTargetKey.matchesKey(key, scancode)) {
+                    if (toggleTargetKey.matches(key, scancode)) {
                         guiClickManager.toggle(client);
                         return false;
                     }
-                    if (recordMacroKey.matchesKey(key, scancode)) {
+                    if (recordMacroKey.matches(key, scancode)) {
                         guiClickManager.startRecording(client);
                         return false;
                     }
-                    if (stopRecordingKey.matchesKey(key, scancode)) {
+                    if (stopRecordingKey.matches(key, scancode)) {
                         guiClickManager.stopRecording(client);
                         return false;
                     }
                 }
 
-                if (smartDetectKey.matchesKey(key, scancode)) {
+                if (smartDetectKey.matches(key, scancode)) {
                     performSmartDetect(client);
                     return false;
                 }
 
-                if (slimefunQuickSetupKey.matchesKey(key, scancode)) {
+                if (slimefunQuickSetupKey.matches(key, scancode)) {
                     performSlimefunQuickSetup(client);
                     return false;
                 }
@@ -283,18 +294,18 @@ public class AutoBotMod implements ClientModInitializer {
 
         // Key checks
         if (toggleBotKey.wasPressed()) toggleMaster(client);
-        if (openConfigKey.wasPressed()) client.setScreen(new AutoBotConfigScreen(client.currentScreen));
-        if (openSlimefunConfigKey.wasPressed()) client.setScreen(new SlimefunConfigScreen(client.currentScreen));
+        if (openConfigKey.wasPressed()) client.setScreen(new AutoBotConfigScreen(client.screen));
+        if (openSlimefunConfigKey.wasPressed()) client.setScreen(new SlimefunConfigScreen(client.screen));
 
-        if (smartDetectKey.wasPressed() && client.currentScreen != null) performSmartDetect(client);
-        if (slimefunQuickSetupKey.wasPressed() && client.currentScreen != null) performSlimefunQuickSetup(client);
+        if (smartDetectKey.wasPressed() && client.screen != null) performSmartDetect(client);
+        if (slimefunQuickSetupKey.wasPressed() && client.screen != null) performSlimefunQuickSetup(client);
 
         if (cycleProfileKey.wasPressed() && profileManager != null) profileManager.cycleProfile(client);
 
         if (toggleOverlayKey.wasPressed() && visualOverlay != null) {
             visualOverlay.toggleAll();
             String status = visualOverlay.isEnabled() ? "§aON" : "§cOFF";
-            client.player.displayClientMessage(Component.literal("§e[Overlay] " + status), true);
+            client.player.sendMessage(Component.literal("§e[Overlay] " + status), true);
         }
 
         if (emergencyStopKey.wasPressed()) performEmergencyStop(client);
@@ -310,9 +321,9 @@ public class AutoBotMod implements ClientModInitializer {
             lastCommandTime = System.currentTimeMillis();
 
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§a§l[AutoBot] MASTER ON"), true);
+                client.player.sendMessage(Component.literal("§a§l[AutoBot] MASTER ON"), true);
                 if (slimefunManager != null && slimefunManager.isInSlimefunGUI(client)) {
-                    client.player.displayClientMessage(Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
+                    client.player.sendMessage(Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
                 }
                 client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
             }
@@ -324,7 +335,7 @@ public class AutoBotMod implements ClientModInitializer {
             commandEnabled = false;
 
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§c§l[AutoBot] MASTER OFF"), true);
+                client.player.sendMessage(Component.literal("§c§l[AutoBot] MASTER OFF"), true);
                 client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 1.0F);
             }
         }
@@ -334,9 +345,9 @@ public class AutoBotMod implements ClientModInitializer {
         long currentTime = System.currentTimeMillis();
 
         // GUI interactions
-        if (client.currentScreen != null) {
-            if (client.currentScreen instanceof AbstractContainerScreen && inventoryManager != null) {
-                inventoryManager.tick(client, (AbstractContainerScreen<?>) client.currentScreen);
+        if (client.screen != null) {
+            if (client.screen instanceof AbstractContainerScreen && inventoryManager != null) {
+                inventoryManager.tick(client, (AbstractContainerScreen<?>) client.screen);
             }
 
             if (guiClickManager != null) guiClickManager.tick(client);
@@ -379,14 +390,14 @@ public class AutoBotMod implements ClientModInitializer {
     }
 
     private void performSmartDetect(Minecraft client) {
-        if (client.currentScreen == null) return;
+        if (client.screen == null) return;
 
-        if (SlimefunDetector.isSlimefunGUI(client.currentScreen)) {
+        if (SlimefunDetector.isSlimefunGUI(client.screen)) {
             performSlimefunQuickSetup(client);
             return;
         }
 
-        SmartDetector.GuiType guiType = SmartDetector.detectGuiType(client.currentScreen);
+        SmartDetector.GuiType guiType = SmartDetector.detectGuiType(client.screen);
         if (guiType != SmartDetector.GuiType.UNKNOWN) {
             SmartDetector.autoConfigureForGui(client, guiType);
             List<ClickTarget> targets = SmartDetector.autoDetectTargets(client);
@@ -405,9 +416,9 @@ public class AutoBotMod implements ClientModInitializer {
     }
 
     private void performSlimefunQuickSetup(Minecraft client) {
-        if (client.currentScreen == null || slimefunManager == null) return;
-        if (!SlimefunDetector.isSlimefunGUI(client.currentScreen)) {
-            if (client.player != null) client.player.displayClientMessage(Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
+        if (client.screen == null || slimefunManager == null) return;
+        if (!SlimefunDetector.isSlimefunGUI(client.screen)) {
+            if (client.player != null) client.player.sendMessage(Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
             return;
         }
         slimefunManager.quickSetup(client);
@@ -423,7 +434,7 @@ public class AutoBotMod implements ClientModInitializer {
         if (slimefunManager != null) slimefunManager.setSlimefunModeEnabled(false);
 
         if (client.player != null) {
-            client.player.displayClientMessage(Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
+            client.player.sendMessage(Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
             client.player.playSound(SoundEvents.BLOCK_ANVIL_LAND, 1.0F, 0.8F);
         }
     }

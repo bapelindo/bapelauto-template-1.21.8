@@ -4,7 +4,7 @@
 // ============================================
 package com.bapelauto;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
@@ -69,7 +69,7 @@ public class SessionDebugScreen extends Screen {
     }
     
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         // Background
         context.fillGradient(0, 0, this.width, this.height, 0xC0101010, 0xD0101010);
         super.render(context, mouseX, mouseY, delta);

@@ -7,7 +7,7 @@ package com.bapelauto.visual;
 import com.bapelauto.AutoBotMod;
 import com.bapelauto.click.ClickTarget;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.Slot;
 
@@ -29,11 +29,11 @@ public class VisualOverlay {
     /**
      * Render overlay on GUI screens
      */
-    public void renderGuiOverlay(GuiGraphics context, Minecraft client, int mouseX, int mouseY) {
+    public void renderGuiOverlay(GuiGraphicsExtractor context, Minecraft client, int mouseX, int mouseY) {
         if (!enabled) return;
         
         // Draw targets
-        if (showTargets && client.currentScreen instanceof AbstractContainerScreen) {
+        if (showTargets && client.screen instanceof AbstractContainerScreen) {
             renderTargets(context, client);
         }
         
@@ -51,7 +51,7 @@ public class VisualOverlay {
     /**
      * Render overlay in world (HUD)
      */
-    public void renderWorldOverlay(GuiGraphics context, Minecraft client) {
+    public void renderWorldOverlay(GuiGraphicsExtractor context, Minecraft client) {
         if (!enabled) return;
         
         // Status indicator in corner
@@ -63,11 +63,11 @@ public class VisualOverlay {
         }
     }
     
-    private void renderTargets(GuiGraphics context, Minecraft client) {
+    private void renderTargets(GuiGraphicsExtractor context, Minecraft client) {
         var guiClickManager = AutoBotMod.getGuiClickManager();
         if (guiClickManager == null || !guiClickManager.hasTargets()) return;
         
-        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.currentScreen;
+        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) client.screen;
         
         // Highlight captured targets
         // Note: This is a simplified version - actual slot highlighting requires more screen details
@@ -99,11 +99,11 @@ public class VisualOverlay {
         );
     }
     
-    private void renderStatsHud(GuiGraphics context, Minecraft client) {
+    private void renderStatsHud(GuiGraphicsExtractor context, Minecraft client) {
         if (!AutoBotMod.isRunning()) return;
         
         int x = 5;
-        int y = client.getWindow().getScaledHeight() - 100;
+        int y = context.guiHeight() - 100;
         
         // Background
         context.fill(x - 2, y - 2, x + 150, y + 75, 0x88000000);
@@ -142,8 +142,8 @@ public class VisualOverlay {
         }
     }
     
-    private void renderStatusIndicator(GuiGraphics context, Minecraft client) {
-        int x = client.getWindow().getScaledWidth() - 120;
+    private void renderStatusIndicator(GuiGraphicsExtractor context, Minecraft client) {
+        int x = context.guiWidth() - 120;
         int y = 5;
         
         // Status box
@@ -160,8 +160,8 @@ public class VisualOverlay {
         );
     }
     
-    private void renderActiveFeatures(GuiGraphics context, Minecraft client) {
-        int x = client.getWindow().getScaledWidth() - 120;
+    private void renderActiveFeatures(GuiGraphicsExtractor context, Minecraft client) {
+        int x = context.guiWidth() - 120;
         int y = 30;
         
         List<String> activeFeatures = new ArrayList<>();
@@ -203,7 +203,7 @@ public class VisualOverlay {
         }
     }
     
-    private void renderClickIndicators(GuiGraphics context) {
+    private void renderClickIndicators(GuiGraphicsExtractor context) {
         long currentTime = System.currentTimeMillis();
         
         clickIndicators.removeIf(indicator -> 

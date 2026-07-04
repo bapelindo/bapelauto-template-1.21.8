@@ -6,14 +6,14 @@
 //   - client.player.networkHandler -> client.player.connection
 //   - connection.sendChatCommand(...) -> connection.sendCommand(...)
 //   - connection.sendChatMessage(...) -> connection.sendChat(...)
-//   - client.player.sendMessage(...) -> client.player.displayClientMessage(...)
-//   - client.currentScreen is unchanged (still correct in 26.1)
+//   - client.player.sendMessage(...) -> client.player.sendMessage(...)
+//   - client.screen is unchanged (still correct in 26.1)
 // ============================================
 package com.bapelauto.hotkey;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.InputConstants;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
@@ -128,7 +128,7 @@ public class HotkeyManager {
      * Get key name from key code
      */
     public static String getKeyName(int keyCode) {
-        return InputConstants.fromKeyCode(keyCode, 0).getLocalizedText().getString();
+        return InputConstants.getKey(keyCode, 0).getDisplayName().getString();
     }
 
     /**
@@ -177,30 +177,30 @@ public class HotkeyManager {
                         } else {
                             client.player.connection.sendChat(actionData);
                         }
-                        client.player.displayClientMessage(Component.literal("§e[Hotkey] Sent: " + actionData), true);
+                        client.player.sendMessage(Component.literal("§e[Hotkey] Sent: " + actionData), true);
                     }
                     break;
 
                 case QUICK_STEAL:
-                    if (client.currentScreen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen) {
+                    if (client.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen) {
                         com.bapelauto.inventory.InventoryManager.performSingleSteal(client);
                     }
                     break;
 
                 case QUICK_STORE:
-                    if (client.currentScreen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen) {
+                    if (client.screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen) {
                         com.bapelauto.inventory.InventoryManager.performSingleStore(client);
                     }
                     break;
 
                 case EMERGENCY_STOP:
-                    client.player.displayClientMessage(Component.literal("§c§l[EMERGENCY STOP] All features disabled!"), true);
+                    client.player.sendMessage(Component.literal("§c§l[EMERGENCY STOP] All features disabled!"), true);
                     client.player.playSound(net.minecraft.sounds.SoundEvents.BLOCK_ANVIL_LAND, 1.0F, 1.0F);
                     // This would need to call AutoBotMod methods to disable everything
                     break;
 
                 default:
-                    client.player.displayClientMessage(Component.literal("§e[Hotkey] " + action.getDisplayName()), true);
+                    client.player.sendMessage(Component.literal("§e[Hotkey] " + action.getDisplayName()), true);
                     break;
             }
 

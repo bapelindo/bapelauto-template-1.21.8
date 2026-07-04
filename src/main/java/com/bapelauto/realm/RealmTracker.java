@@ -31,7 +31,7 @@ public class RealmTracker {
     }
     
     public void tick(Minecraft client) {
-        boolean connected = (client.player != null && client.getNetworkHandler() != null);
+        boolean connected = (client.player != null && client.getConnection() != null);
         String serverAddr = getServerAddress(client);
         String realmName = getRealmName(client);
         long currentTime = System.currentTimeMillis();
@@ -94,15 +94,15 @@ public class RealmTracker {
     }
     
     private String getServerAddress(Minecraft client) {
-        if (client.getCurrentServerEntry() != null) {
-            return client.getCurrentServerEntry().address;
+        if (client.getCurrentServer() != null) {
+            return client.getCurrentServer().address;
         }
         return "";
     }
     
     private String getRealmName(Minecraft client) {
-        if (client.world != null && client.world.getRegistryKey() != null) {
-            String fullPath = client.world.getRegistryKey().getValue().getPath();
+        if (client.level != null && client.level.getRegistryKey() != null) {
+            String fullPath = client.level.getRegistryKey().getValue().getPath();
             if (fullPath.contains(":")) {
                 String[] parts = fullPath.split(":");
                 return parts[parts.length - 1];

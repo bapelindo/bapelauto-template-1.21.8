@@ -375,8 +375,7 @@ public class AdvancedConfigScreen extends Screen {
         int cx = this.width / 2;
         int startY = 40;
         
-        List<HotkeyManager.CustomHotkey> hotkeys = hotkeyManager.getAllHotkeys();
-        
+        List<com.bapelauto.hotkey.HotkeyManager.CustomHotkey> hotkeys = hotkeyManager.getAllHotkeys();        
         if (hotkeys.isEmpty()) {
             // Info message
         } else {

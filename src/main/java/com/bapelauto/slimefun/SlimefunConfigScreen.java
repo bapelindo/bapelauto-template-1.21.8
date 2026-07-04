@@ -5,7 +5,7 @@
 package com.bapelauto.slimefun;
 
 import com.bapelauto.AutoBotMod;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -605,7 +605,7 @@ public class SlimefunConfigScreen extends Screen {
     // RENDER
     // ==========================================
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
+    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         // Clean gradient background
         context.fillGradient(0, 0, this.width, this.height, 0xF0101010, 0xF0181818);
         
@@ -646,7 +646,7 @@ public class SlimefunConfigScreen extends Screen {
         );
     }
     
-    private void renderMainTabInfo(GuiGraphics context, int cx) {
+    private void renderMainTabInfo(GuiGraphicsExtractor context, int cx) {
         SlimefunDetector.SlimefunMachine current = slimefunManager.getCurrentMachine();
         
         if (current != SlimefunDetector.SlimefunMachine.UNKNOWN) {
@@ -668,7 +668,7 @@ public class SlimefunConfigScreen extends Screen {
         }
     }
     
-    private void renderRecipesTabInfo(GuiGraphics context, int cx) {
+    private void renderRecipesTabInfo(GuiGraphicsExtractor context, int cx) {
         List<RecipeFeeder.Recipe> recipes;
         
         if (!recipeSearchQuery.isEmpty()) {

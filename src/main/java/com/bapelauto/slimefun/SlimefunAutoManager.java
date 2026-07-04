@@ -57,7 +57,7 @@ public class SlimefunAutoManager {
      */
     public void tick(Minecraft client) {
         if (!slimefunModeEnabled) return;
-        if (client.currentScreen == null) return;
+        if (client.screen == null) return;
         
         // Auto-detect Slimefun machines periodically
         long currentTime = System.currentTimeMillis();
@@ -87,13 +87,13 @@ public class SlimefunAutoManager {
      * Auto-detect Slimefun machine and configure bot
      */
     private void autoDetectAndConfigure(Minecraft client) {
-        if (!(client.currentScreen instanceof AbstractContainerScreen)) return;
+        if (!(client.screen instanceof AbstractContainerScreen)) return;
         
-        if (!SlimefunDetector.isSlimefunGUI(client.currentScreen)) {
+        if (!SlimefunDetector.isSlimefunGUI(client.screen)) {
             return;
         }
         
-        SlimefunDetector.SlimefunMachine detected = SlimefunDetector.detectMachineType(client.currentScreen);
+        SlimefunDetector.SlimefunMachine detected = SlimefunDetector.detectMachineType(client.screen);
         
         if (detected != currentMachine && detected != SlimefunDetector.SlimefunMachine.UNKNOWN) {
             currentMachine = detected;
@@ -182,7 +182,7 @@ public class SlimefunAutoManager {
      * Quick setup - detect current GUI and auto-configure everything
      */
     public void quickSetup(Minecraft client) {
-        if (client.currentScreen == null) {
+        if (client.screen == null) {
             if (client.player != null) {
                 client.player.sendMessage(
                     Component.literal("§c[Slimefun] Open a Slimefun machine GUI first!"), false
@@ -191,7 +191,7 @@ public class SlimefunAutoManager {
             return;
         }
         
-        SlimefunDetector.SlimefunMachine machine = SlimefunDetector.detectMachineType(client.currentScreen);
+        SlimefunDetector.SlimefunMachine machine = SlimefunDetector.detectMachineType(client.screen);
         
         if (machine == SlimefunDetector.SlimefunMachine.UNKNOWN) {
             if (client.player != null) {
@@ -613,8 +613,8 @@ public class SlimefunAutoManager {
      * Check if currently in a Slimefun GUI
      */
     public boolean isInSlimefunGUI(Minecraft client) {
-        return client.currentScreen != null && 
-               SlimefunDetector.isSlimefunGUI(client.currentScreen);
+        return client.screen != null && 
+               SlimefunDetector.isSlimefunGUI(client.screen);
     }
     
     /**

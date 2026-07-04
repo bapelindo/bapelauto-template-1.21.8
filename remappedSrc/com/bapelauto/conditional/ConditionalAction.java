@@ -1,12 +1,12 @@
 // ============================================
-// FILE: ConditionalAction.java
+// FILE: ConditionalAction.java (FIXED FOR 26.1 - MOJMAP 1.22 PURIST)
 // Path: src/main/java/com/bapelauto/conditional/ConditionalAction.java
 // ============================================
 package com.bapelauto.conditional;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,159 +43,129 @@ public class ConditionalAction {
     }
     
     public enum ActionType {
-        SEND_COMMAND("Send Command", "Execute a command"),
-        STOP_BOT("Stop Bot", "Disable all automation"),
-        PLAY_SOUND("Play Sound", "Play alert sound"),
-        SEND_MESSAGE("Send Message", "Display message"),
-        SWITCH_PROFILE("Switch Profile", "Load different profile"),
-        ENABLE_FEATURE("Enable Feature", "Turn on specific feature"),
-        DISABLE_FEATURE("Disable Feature", "Turn off specific feature");
+        LOG_MESSAGE("Log Message"),
+        SEND_CHAT("Send Chat/Command"),
+        TOGGLE_BOT("Toggle Bot"),
+        TRIGGER_HOTKEY("Trigger Hotkey"),
+        EMERGENCY_STOP("Emergency Stop"),
+        CUSTOM("Custom");
         
         private final String displayName;
-        private final String description;
-        
-        ActionType(String displayName, String description) {
-            this.displayName = displayName;
-            this.description = description;
-        }
-        
+        ActionType(String displayName) { this.displayName = displayName; }
         public String getDisplayName() { return displayName; }
-        public String getDescription() { return description; }
     }
     
     private final ConditionType conditionType;
     private final ActionType actionType;
     private final double threshold;
     private final String actionData;
-    private final String description;
-    private long lastTriggeredTime = 0;
-    private long cooldown = 5000; // 5 second cooldown between triggers
+    private String description;
     
-    public ConditionalAction(ConditionType condition, ActionType action, double threshold, String actionData, String description) {
+    private long cooldown = 1000; // 1s default cooldown
+    private long lastExecutionTime = 0;
+    private Predicate<Minecraft> customCondition;
+    private Runnable customAction;
+    
+    public ConditionalAction(ConditionType condition, ActionType action, double threshold, String actionData) {
         this.conditionType = condition;
         this.actionType = action;
         this.threshold = threshold;
         this.actionData = actionData;
-        this.description = description;
     }
     
-    /**
-     * Check if condition is met
-     */
-    public boolean checkCondition(MinecraftClient client) {
-        if (client.player == null) return false;
-        
-        PlayerEntity player = client.player;
-        long currentTime = System.currentTimeMillis();
-        
-        // Cooldown check
-        if (currentTime - lastTriggeredTime < cooldown) {
-            return false;
-        }
-        
-        boolean conditionMet = false;
+    public void setCustomCondition(Predicate<Minecraft> condition) { this.customCondition = condition; }
+    public void setCustomAction(Runnable action) { this.customAction = action; }
+    public void setDescription(String desc) { this.description = desc; }
+    
+    public boolean checkCondition(Minecraft client) {
+        Player player = client.player;
+        if (player == null) return false;
         
         switch (conditionType) {
             case HEALTH_BELOW:
-                conditionMet = player.getHealth() < threshold;
-                break;
-                
+                return player.getHealth() < threshold;
             case HEALTH_ABOVE:
-                conditionMet = player.getHealth() > threshold;
-                break;
-                
+                return player.getHealth() > threshold;
             case HUNGER_BELOW:
-                conditionMet = player.getHungerManager().getFoodLevel() < threshold;
-                break;
-                
+                // FIX: Mojmap 1.22 menggunakan player.getFoodData().getFoodLevel()
+                return player.getFoodData().getFoodLevel() < threshold;
+            case ITEM_COUNT_BELOW:
+                return countItem(player, actionData) < threshold;
+            case ITEM_COUNT_ABOVE:
+                return countItem(player, actionData) > threshold;
             case INVENTORY_FULL:
-                conditionMet = isInventoryFull(player);
-                break;
-                
+                // Free slot check standard Mojmap
+                return player.getInventory().getFreeSlot() == -1;
             case INVENTORY_EMPTY:
-                conditionMet = isInventoryEmpty(player);
-                break;
-                
-            case TIME_PASSED:
-                conditionMet = (currentTime - lastTriggeredTime) > (threshold * 1000);
-                break;
-                
+                return isInventoryEmpty(player);
             case IN_COMBAT:
-                conditionMet = player.getAttacker() != null;
-                break;
-                
+                // FIX: getAttacker() -> getLastAttacker() & getLastHurtByMob() untuk akurasi combat state
+                return player.getLastAttacker() != null || player.getLastHurtByMob() != null;
             case NOT_IN_COMBAT:
-                conditionMet = player.getAttacker() == null;
-                break;
-                
+                // FIX: getAttacker() -> getLastAttacker() & getLastHurtByMob()
+                return player.getLastAttacker() == null && player.getLastHurtByMob() == null;
+            case TIME_PASSED:
+                return (System.currentTimeMillis() - lastExecutionTime) >= threshold;
+            case CUSTOM:
+                return customCondition != null && customCondition.test(client);
             default:
-                conditionMet = false;
+                return false;
         }
-        
-        return conditionMet;
     }
     
-    /**
-     * Execute the action
-     */
-    public void executeAction(MinecraftClient client) {
-        if (client.player == null) return;
+    public void executeAction(Minecraft client) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastExecutionTime < cooldown) return;
         
-        lastTriggeredTime = System.currentTimeMillis();
+        lastExecutionTime = currentTime;
         
         switch (actionType) {
-            case SEND_COMMAND:
-                if (actionData != null && !actionData.isEmpty()) {
+            case LOG_MESSAGE:
+                System.out.println("[ConditionalAction] Triggered: " + actionData);
+                break;
+            case SEND_CHAT:
+                if (client.player != null && actionData != null) {
                     if (actionData.startsWith("/")) {
-                        client.player.networkHandler.sendChatCommand(actionData.substring(1));
+                        client.player.connection.sendCommand(actionData.substring(1));
                     } else {
-                        client.player.networkHandler.sendChatMessage(actionData);
+                        client.player.connection.sendChat(actionData);
                     }
                 }
                 break;
-                
-            case SEND_MESSAGE:
-                if (actionData != null) {
-                    client.player.sendMessage(net.minecraft.text.Text.literal("§e[Auto] " + actionData), false);
-                }
+            case TOGGLE_BOT:
                 break;
-                
-            case PLAY_SOUND:
-                client.player.playSound(net.minecraft.sound.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
+            case EMERGENCY_STOP:
                 break;
-                
-            case STOP_BOT:
-                // This would need to call AutoBotMod to disable
-                client.player.sendMessage(net.minecraft.text.Text.literal("§c[Auto] Bot stopped by condition: " + description), true);
+            case CUSTOM:
+                if (customAction != null) customAction.run();
                 break;
-                
             default:
                 break;
         }
     }
     
-    /**
-     * Tick - check and execute if condition met
-     */
-    public void tick(MinecraftClient client) {
+    public void tick(Minecraft client) {
         if (checkCondition(client)) {
             executeAction(client);
         }
     }
     
-    private boolean isInventoryFull(PlayerEntity player) {
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            ItemStack stack = player.getInventory().getStack(i);
-            if (stack.isEmpty()) {
-                return false;
+    private int countItem(Player player, String itemName) {
+        if (itemName == null || itemName.isEmpty()) return 0;
+        int count = 0;
+        // FIX: Menggunakan getContainerSize() standar Mojmap untuk ukuran inventory penampung
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (!stack.isEmpty() && stack.getItem().toString().contains(itemName)) {
+                count += stack.getCount();
             }
         }
-        return true;
+        return count;
     }
     
-    private boolean isInventoryEmpty(PlayerEntity player) {
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            ItemStack stack = player.getInventory().getStack(i);
+    private boolean isInventoryEmpty(Player player) {
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
             if (!stack.isEmpty()) {
                 return false;
             }
@@ -238,17 +208,13 @@ class ConditionalActionManager {
         actions.clear();
     }
     
-    public void tick(MinecraftClient client) {
+    public void tick(Minecraft client) {
         for (ConditionalAction action : actions) {
             action.tick(client);
         }
     }
     
     public List<ConditionalAction> getActions() {
-        return new ArrayList<>(actions);
-    }
-    
-    public int getActionCount() {
-        return actions.size();
+        return actions;
     }
 }
