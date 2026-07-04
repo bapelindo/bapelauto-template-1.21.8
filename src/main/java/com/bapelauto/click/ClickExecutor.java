@@ -6,7 +6,7 @@ package com.bapelauto.click;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
+import net.minecraft.world.inventory.ClickType;
 
 public class ClickExecutor {
     private int totalClicks = 0;

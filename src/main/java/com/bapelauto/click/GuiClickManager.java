@@ -1,6 +1,11 @@
 // ============================================
 // FILE: GuiClickManager.java
 // Path: src/main/java/com/bapelauto/click/GuiClickManager.java
+//
+// Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings).
+//   - Slot.id -> Slot.index
+//   - Minecraft.mouse -> Minecraft.mouseHandler, MouseHandler.getX()/getY()
+//     -> xpos()/ypos()
 // ============================================
 package com.bapelauto.click;
 
@@ -43,20 +48,20 @@ public class GuiClickManager {
         if (client.screen instanceof AbstractContainerScreen) {
             Slot slot = getFocusedSlot((AbstractContainerScreen<?>) client.screen);
             if (slot != null) {
-                newTarget = new ClickTarget(slot.id, defaultDelay);
+                newTarget = new ClickTarget(slot.index, defaultDelay);
                 if (client.player != null) {
-                    client.player.sendMessage(Component.literal("§e[Capture] Slot: " + slot.id), true);
+                    client.player.displayClientMessage(Component.literal("§e[Capture] Slot: " + slot.index), true);
                 }
             }
         }
-        
+
         // Fall back to point capture
         if (newTarget == null) {
-            double mouseX = client.mouse.getX() * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();
-            double mouseY = client.mouse.getY() * (double)client.getWindow().getScaledHeight() / (double)client.getWindow().getHeight();
+            double mouseX = client.mouseHandler.xpos() * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();
+            double mouseY = client.mouseHandler.ypos() * (double)client.getWindow().getScaledHeight() / (double)client.getWindow().getHeight();
             newTarget = new ClickTarget(mouseX, mouseY, defaultDelay);
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§e[Capture] Point: " + (int)mouseX + ", " + (int)mouseY), true);
+                client.player.displayClientMessage(Component.literal("§e[Capture] Point: " + (int)mouseX + ", " + (int)mouseY), true);
             }
         }
         
@@ -64,7 +69,7 @@ public class GuiClickManager {
         if (macroRecorder.isRecording()) {
             macroRecorder.recordAction(newTarget);
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§a[Recording] Step " + macroRecorder.getActionCount()), true);
+                client.player.displayClientMessage(Component.literal("§a[Recording] Step " + macroRecorder.getActionCount()), true);
             }
         } else {
             // Normal capture mode
@@ -72,7 +77,7 @@ public class GuiClickManager {
             updateMode();
             
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§6[Capture] Total: " + capturedTargets.size()), true);
+                client.player.displayClientMessage(Component.literal("§6[Capture] Total: " + capturedTargets.size()), true);
                 client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
             }
         }
@@ -105,7 +110,7 @@ public class GuiClickManager {
             isActive = false;
             
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§e[Macro] Ready to replay - Press [=] to start"), true);
+                client.player.displayClientMessage(Component.literal("§e[Macro] Ready to replay - Press [=] to start"), true);
             }
         }
     }
@@ -113,7 +118,7 @@ public class GuiClickManager {
     public void toggle(Minecraft client) {
         if (capturedTargets.isEmpty()) {
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§c[Click] No targets! Press [-] to capture"), false);
+                client.player.displayClientMessage(Component.literal("§c[Click] No targets! Press [-] to capture"), false);
             }
             isActive = false;
             return;
@@ -131,7 +136,7 @@ public class GuiClickManager {
             String status = isActive ? "§a§lACTIVE" : "§cPAUSED";
             String mode = " [" + currentMode.getDisplayName() + "]";
             String pattern = " {" + timingPattern.getDisplayName() + "}";
-            client.player.sendMessage(Component.literal("§6[Click] " + status + mode + pattern), true);
+            client.player.displayClientMessage(Component.literal("§6[Click] " + status + mode + pattern), true);
         }
     }
     

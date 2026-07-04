@@ -13,6 +13,15 @@
 //     in this codebase, so they were left untouched (evidence says they
 //     are valid in this build, despite looking like older Fabric/Yarn names).
 //
+// Round 2 (KeyEvent input API + remaining errors):
+//   - KeyMapping.matches(key, scancode) -> KeyMapping.matches(event); the
+//     ScreenKeyboardEvents key-press callback's `event` param already exposes
+//     key()/scancode() accessors matching KeyEvent's record shape, so it is
+//     passed straight through instead of unpacking it into two ints.
+//   - player.sendMessage(Component, boolean) -> displayClientMessage(...)
+//   - SoundEvents.BLOCK_NOTE_BLOCK_PLING/BLOCK_NOTE_BLOCK_BASS/BLOCK_ANVIL_LAND
+//     -> NOTE_BLOCK_PLING/NOTE_BLOCK_BASS/ANVIL_LAND (no BLOCK_ prefix)
+//
 // NOTE: this port targets Minecraft 26.1.2, which is beyond the
 // assistant's training data. Fixes above are backed by the actual
 // compiler errors provided. Anything not covered by a real error message
@@ -239,34 +248,33 @@ public class AutoBotMod implements ClientModInitializer {
                 if (!botRunning) return true;
 
                 int key = event.key();
-                int scancode = event.scancode();
 
                 // Hotkey interception
                 if (guiClickManager != null) {
-                    if (captureTargetKey.matches(key, scancode)) {
+                    if (captureTargetKey.matches(event)) {
                         guiClickManager.captureTarget(client, 100);
                         return false;
                     }
-                    if (toggleTargetKey.matches(key, scancode)) {
+                    if (toggleTargetKey.matches(event)) {
                         guiClickManager.toggle(client);
                         return false;
                     }
-                    if (recordMacroKey.matches(key, scancode)) {
+                    if (recordMacroKey.matches(event)) {
                         guiClickManager.startRecording(client);
                         return false;
                     }
-                    if (stopRecordingKey.matches(key, scancode)) {
+                    if (stopRecordingKey.matches(event)) {
                         guiClickManager.stopRecording(client);
                         return false;
                     }
                 }
 
-                if (smartDetectKey.matches(key, scancode)) {
+                if (smartDetectKey.matches(event)) {
                     performSmartDetect(client);
                     return false;
                 }
 
-                if (slimefunQuickSetupKey.matches(key, scancode)) {
+                if (slimefunQuickSetupKey.matches(event)) {
                     performSlimefunQuickSetup(client);
                     return false;
                 }
@@ -305,7 +313,7 @@ public class AutoBotMod implements ClientModInitializer {
         if (toggleOverlayKey.wasPressed() && visualOverlay != null) {
             visualOverlay.toggleAll();
             String status = visualOverlay.isEnabled() ? "§aON" : "§cOFF";
-            client.player.sendMessage(Component.literal("§e[Overlay] " + status), true);
+            client.player.displayClientMessage(Component.literal("§e[Overlay] " + status), true);
         }
 
         if (emergencyStopKey.wasPressed()) performEmergencyStop(client);
@@ -321,11 +329,11 @@ public class AutoBotMod implements ClientModInitializer {
             lastCommandTime = System.currentTimeMillis();
 
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§a§l[AutoBot] MASTER ON"), true);
+                client.player.displayClientMessage(Component.literal("§a§l[AutoBot] MASTER ON"), true);
                 if (slimefunManager != null && slimefunManager.isInSlimefunGUI(client)) {
-                    client.player.sendMessage(Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
+                    client.player.displayClientMessage(Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
                 }
-                client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
+                client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
             }
         } else {
             // Disable all systems
@@ -335,8 +343,8 @@ public class AutoBotMod implements ClientModInitializer {
             commandEnabled = false;
 
             if (client.player != null) {
-                client.player.sendMessage(Component.literal("§c§l[AutoBot] MASTER OFF"), true);
-                client.player.playSound(SoundEvents.BLOCK_NOTE_BLOCK_BASS.value(), 1.0F, 1.0F);
+                client.player.displayClientMessage(Component.literal("§c§l[AutoBot] MASTER OFF"), true);
+                client.player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1.0F, 1.0F);
             }
         }
     }
@@ -418,7 +426,7 @@ public class AutoBotMod implements ClientModInitializer {
     private void performSlimefunQuickSetup(Minecraft client) {
         if (client.screen == null || slimefunManager == null) return;
         if (!SlimefunDetector.isSlimefunGUI(client.screen)) {
-            if (client.player != null) client.player.sendMessage(Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
+            if (client.player != null) client.player.displayClientMessage(Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
             return;
         }
         slimefunManager.quickSetup(client);
@@ -434,8 +442,8 @@ public class AutoBotMod implements ClientModInitializer {
         if (slimefunManager != null) slimefunManager.setSlimefunModeEnabled(false);
 
         if (client.player != null) {
-            client.player.sendMessage(Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
-            client.player.playSound(SoundEvents.BLOCK_ANVIL_LAND, 1.0F, 0.8F);
+            client.player.displayClientMessage(Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
+            client.player.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F);
         }
     }
 

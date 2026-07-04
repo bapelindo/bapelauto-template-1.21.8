@@ -156,17 +156,17 @@ public class ConditionalAction {
                 
             case SEND_MESSAGE:
                 if (actionData != null) {
-                    client.player.sendMessage(net.minecraft.network.chat.Component.literal("§e[Auto] " + actionData), false);
+                    client.player.displayClientMessage(net.minecraft.network.chat.Component.literal("§e[Auto] " + actionData), false);
                 }
                 break;
                 
             case PLAY_SOUND:
-                client.player.playSound(net.minecraft.sounds.SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
+                client.player.playSound(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
                 break;
                 
             case STOP_BOT:
                 // This would need to call AutoBotMod to disable
-                client.player.sendMessage(net.minecraft.network.chat.Component.literal("§c[Auto] Bot stopped by condition: " + description), true);
+                client.player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Auto] Bot stopped by condition: " + description), true);
                 break;
                 
             default:

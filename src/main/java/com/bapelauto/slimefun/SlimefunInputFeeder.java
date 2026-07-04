@@ -11,7 +11,7 @@
 //   - handler.containerId -> handler.containerId
 //   - client.player.containerMenu -> client.player.containerMenu
 //   - .getCarried() -> .getCarried()
-//   - player.sendMessage(...) -> player.sendMessage(...)
+//   - player.sendMessage(...) -> player.displayClientMessage(...)
 // ============================================
 package com.bapelauto.slimefun;
 
@@ -20,7 +20,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -145,7 +145,7 @@ public class SlimefunInputFeeder {
                     totalItemsFed++;
 
                     if (client.player != null) {
-                        client.player.sendMessage(
+                        client.player.displayClientMessage(
                             Component.literal("§a[Auto-Input] Fed " + stack.getItem().getName().getString() +
                                        " to " + machine.getDisplayName()),
                             true
@@ -196,7 +196,7 @@ public class SlimefunInputFeeder {
 
         if (!INPUT_SLOTS.containsKey(machine)) {
             if (client.player != null) {
-                client.player.sendMessage(
+                client.player.displayClientMessage(
                     Component.literal("§c[Auto-Input] Machine type not supported: " + machine.getDisplayName()),
                     false
                 );
@@ -205,14 +205,14 @@ public class SlimefunInputFeeder {
         }
 
         if (client.player != null) {
-            client.player.sendMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a[Auto-Input] Configured for " + machine.getDisplayName()),
                 true
             );
 
             List<String> items = REQUIRED_ITEMS.get(machine);
             if (items != null && !items.isEmpty()) {
-                client.player.sendMessage(
+                client.player.displayClientMessage(
                     Component.literal("§7Required items: §f" + String.join(", ", items)),
                     false
                 );

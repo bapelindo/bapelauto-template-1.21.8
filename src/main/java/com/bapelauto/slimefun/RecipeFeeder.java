@@ -10,7 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -214,7 +214,7 @@ public class RecipeFeeder {
         
         // If we get here, we couldn't feed any items (probably missing from inventory)
         if (autoDetectMode && client.player != null) {
-            client.player.sendMessage(
+            client.player.displayClientMessage(
                 Component.literal("§c[Recipe Feeder] Missing required items for recipe!"),
                 true
             );
@@ -284,7 +284,7 @@ public class RecipeFeeder {
                     totalItemsPlaced++;
                     
                     if (client.player != null) {
-                        client.player.sendMessage(
+                        client.player.displayClientMessage(
                             Component.literal("§a[Recipe] Placed " + stack.getItem().getName().getString() + 
                                        " in slot " + targetSlot),
                             true
@@ -332,7 +332,7 @@ public class RecipeFeeder {
         
         if (learned.isEmpty()) {
             if (client.player != null) {
-                client.player.sendMessage(
+                client.player.displayClientMessage(
                     Component.literal("§c[Recipe] No items in crafting grid to learn!"),
                     false
                 );
@@ -346,7 +346,7 @@ public class RecipeFeeder {
         Recipe recipe = new Recipe(recipeName, learned, outputSlot);
         
         if (client.player != null) {
-            client.player.sendMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a[Recipe] Learned recipe: " + recipeName + " (" + learned.size() + " ingredients)"),
                 true
             );

@@ -15,7 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.AbstractContainerMenu.ClickType;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.sounds.SoundEvents;
 
 public class InventoryManager {
