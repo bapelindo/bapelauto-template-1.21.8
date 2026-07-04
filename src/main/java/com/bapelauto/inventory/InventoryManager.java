@@ -15,16 +15,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-// TODO(UNRESOLVED): ClickType was removed in this MC version.
-// AbstractContainerMenu.clicked() now takes a "ContainerInput" object
-// (confirmed real: net.minecraft.world.inventory.ContainerInput) instead of
-// (mouseButton, ClickType). MultiPlayerGameMode.handleInventoryMouseClick(...)
-// almost certainly changed to match. Please open ContainerInput in your IDE
-// (Ctrl+Click on MultiPlayerGameMode.handleInventoryMouseClick) to see its
-// real parameter list and any static factory methods (e.g. something like
-// ContainerInput.click(...)), then replace every ClickType.PICKUP /
-// ClickType.QUICK_MOVE usage below with the equivalent ContainerInput value.
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.sounds.SoundEvents;
 
 public class InventoryManager {

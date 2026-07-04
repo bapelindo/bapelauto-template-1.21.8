@@ -8,7 +8,7 @@
 //   - render(...) -> extractRenderState(...) (new render-extraction split)
 //   - close() -> onClose()
 //   - EditBox: setText/getText/setPlaceholder -> setValue/getValue/setHint
-//   - Player.sendSystemMessage(...) -> Player.sendSystemMessage(...)
+//   - Player.sendMessage(...) -> Player.displayClientMessage(...)
 //   - keyPressed(int,int,int) -> keyPressed(KeyEvent) (new input API)
 //   - Text colors passed to graphics.text(...) must be ARGB (0xFFrrggbb),
 //     not RGB, per Minecraft 1.21.6+ text color changes.
@@ -152,7 +152,7 @@ public class AutoBotConfigScreen extends Screen {
             b -> {
                 AutoBotMod.getGuiClickManager().clearTargets();
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.sendSystemMessage(Component.literal("§e[GUI] Targets cleared"), true);
+                    this.minecraft.player.displayClientMessage(Component.literal("§e[GUI] Targets cleared"), true);
                 }
                 this.clearWidgets();
                 this.init();
@@ -244,7 +244,7 @@ public class AutoBotConfigScreen extends Screen {
             b -> {
                 saveSettings();
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.sendSystemMessage(Component.literal("§a[Config] Settings saved"), true);
+                    this.minecraft.player.displayClientMessage(Component.literal("§a[Config] Settings saved"), true);
                 }
             }
         ).bounds(cx - 150, footerY, 70, 20).build());

@@ -10,16 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-// TODO(UNRESOLVED): ClickType was removed in this MC version.
-// AbstractContainerMenu.clicked() now takes a "ContainerInput" object
-// (confirmed real: net.minecraft.world.inventory.ContainerInput) instead of
-// (mouseButton, ClickType). MultiPlayerGameMode.handleInventoryMouseClick(...)
-// almost certainly changed to match. Please open ContainerInput in your IDE
-// (Ctrl+Click on MultiPlayerGameMode.handleInventoryMouseClick) to see its
-// real parameter list and any static factory methods (e.g. something like
-// ContainerInput.click(...)), then replace every ClickType.PICKUP /
-// ClickType.QUICK_MOVE usage below with the equivalent ContainerInput value.
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -223,7 +214,7 @@ public class RecipeFeeder {
         
         // If we get here, we couldn't feed any items (probably missing from inventory)
         if (autoDetectMode && client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§c[Recipe Feeder] Missing required items for recipe!"),
                 true
             );
@@ -293,7 +284,7 @@ public class RecipeFeeder {
                     totalItemsPlaced++;
                     
                     if (client.player != null) {
-                        client.player.sendSystemMessage(
+                        client.player.displayClientMessage(
                             Component.literal("§a[Recipe] Placed " + stack.getItem().getName().getString() + 
                                        " in slot " + targetSlot),
                             true
@@ -341,7 +332,7 @@ public class RecipeFeeder {
         
         if (learned.isEmpty()) {
             if (client.player != null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§c[Recipe] No items in crafting grid to learn!"),
                     false
                 );
@@ -355,7 +346,7 @@ public class RecipeFeeder {
         Recipe recipe = new Recipe(recipeName, learned, outputSlot);
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a[Recipe] Learned recipe: " + recipeName + " (" + learned.size() + " ingredients)"),
                 true
             );

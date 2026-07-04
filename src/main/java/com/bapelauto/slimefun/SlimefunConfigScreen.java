@@ -1,6 +1,15 @@
 // ============================================
 // FILE: SlimefunConfigScreen.java (MODERN CLEAN UI)
 // Path: src/main/java/com/bapelauto/slimefun/SlimefunConfigScreen.java
+//
+// Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings), matching
+// the pattern already applied in AutoBotConfigScreen.java / AdvancedConfigScreen.java:
+//   - render(...) -> extractRenderState(...) (new render-extraction split)
+//   - close() -> onClose()
+//   - keyPressed(int,int,int) -> keyPressed(KeyEvent)
+//   - drawCenteredTextWithShadow -> text(...) with manually-computed centered x
+//   - Font.getWidth(String) -> Font.width(String)
+//   - Colors passed to text(...) must be ARGB (0xFFrrggbb), not RGB.
 // ============================================
 package com.bapelauto.slimefun;
 
@@ -9,6 +18,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -115,7 +125,7 @@ public class SlimefunConfigScreen extends Screen {
         
         this.addRenderableWidget(Button.builder(
             Component.literal("§c✖ Close"),
-            b -> this.close()
+            b -> this.onClose()
         ).bounds(cx - 160, footerY, 70, 20).build());
         
         this.addRenderableWidget(Button.builder(
@@ -201,7 +211,7 @@ public class SlimefunConfigScreen extends Screen {
             b -> {
                 slimefunManager.resetStatistics();
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.sendSystemMessage(
+                    this.minecraft.player.displayClientMessage(
                         Component.literal("§e[Slimefun] Statistics reset"), false
                     );
                 }
@@ -305,7 +315,7 @@ public class SlimefunConfigScreen extends Screen {
                     recipeNameField.setText("");
                 } else {
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.sendSystemMessage(
+                        this.minecraft.player.displayClientMessage(
                             Component.literal("§c[Recipe] Enter a name first!"), false
                         );
                     }
@@ -423,7 +433,7 @@ public class SlimefunConfigScreen extends Screen {
                 b -> {
                     slimefunManager.getRecipeFeeder().setRecipe(recipe);
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.sendSystemMessage(
+                        this.minecraft.player.displayClientMessage(
                             Component.literal("§a[Recipe] Selected: " + recipe.getName()), true
                         );
                     }
@@ -486,7 +496,7 @@ public class SlimefunConfigScreen extends Screen {
                 Component.literal("§f" + preset.getName()),
                 b -> {
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.sendSystemMessage(
+                        this.minecraft.player.displayClientMessage(
                             Component.literal("§7" + preset.getDescription()), false
                         );
                     }
@@ -553,7 +563,7 @@ public class SlimefunConfigScreen extends Screen {
             b -> {
                 slimefunManager.resetStatistics();
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.sendSystemMessage(
+                    this.minecraft.player.displayClientMessage(
                         Component.literal("§e[Slimefun] All statistics reset"), false
                     );
                 }
@@ -569,34 +579,34 @@ public class SlimefunConfigScreen extends Screen {
     private void showHelp() {
         if (this.minecraft == null || this.minecraft.player == null) return;
         
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("§e§l=== Slimefun Quick Guide ==="), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("§6Main Tab:"), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("  §7• Enable Slimefun Mode"), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("  §7• Use Quick Setup for auto-config"), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("§6Automation Tab:"), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("  §7• Auto-Input: Feeds items to machines"), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("  §7• Auto-Recipe: Maintains crafting recipes"), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("§6Recipes Tab:"), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("  §7• Browse " + SlimefunRecipeLibrary.getRecipeCount() + "+ pre-made recipes"), false
         );
-        this.minecraft.player.sendSystemMessage(
+        this.minecraft.player.displayClientMessage(
             Component.literal("  §7• Search and load instantly"), false
         );
     }
@@ -605,28 +615,20 @@ public class SlimefunConfigScreen extends Screen {
     // RENDER
     // ==========================================
     @Override
-    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         // Clean gradient background
         context.fillGradient(0, 0, this.width, this.height, 0xF0101010, 0xF0181818);
-        
-        super.render(context, mouseX, mouseY, delta);
-        
+
+        super.extractRenderState(context, mouseX, mouseY, delta);
+
         int cx = this.width / 2;
-        
+
         // Modern title
-        context.centeredText(
-            this.font,
-            Component.literal("§2§lSLIMEFUN §6§lAUTOMATION §e§l+"),
-            cx, 10, 0xFFFFFF
-        );
-        
+        drawCentered(context, Component.literal("§2§lSLIMEFUN §6§lAUTOMATION §e§l+"), cx, 10, 0xFFFFFFFF);
+
         // Tab description
-        context.centeredText(
-            this.font,
-            Component.literal("§7" + currentTab.description),
-            cx, 58, 0x888888
-        );
-        
+        drawCentered(context, Component.literal("§7" + currentTab.description), cx, 58, 0xFF888888);
+
         // Tab-specific rendering
         switch (currentTab) {
             case MAIN:
@@ -636,41 +638,37 @@ public class SlimefunConfigScreen extends Screen {
                 renderRecipesTabInfo(context, cx);
                 break;
         }
-        
+
         // Footer info
         String statusInfo = slimefunManager.getStatusInfo();
-        context.centeredText(
-            this.font,
-            Component.literal(statusInfo),
-            cx, this.height - 45, 0x666666
-        );
+        drawCentered(context, Component.literal(statusInfo), cx, this.height - 45, 0xFF666666);
     }
-    
+
+    private void drawCentered(GuiGraphicsExtractor context, net.minecraft.network.chat.MutableComponent text, int centerX, int y, int argbColor) {
+        context.text(this.font, text, centerX - this.font.width(text) / 2, y, argbColor, true);
+    }
+
     private void renderMainTabInfo(GuiGraphicsExtractor context, int cx) {
         SlimefunDetector.SlimefunMachine current = slimefunManager.getCurrentMachine();
-        
+
         if (current != SlimefunDetector.SlimefunMachine.UNKNOWN) {
             String instructions = SlimefunDetector.getMachineInstructions(current);
-            
+
             // Wrap long instructions
             int maxWidth = 280;
             List<String> lines = wrapText(instructions, maxWidth);
-            
+
             int y = 140;
             for (String line : lines) {
-                context.centeredText(
-                    this.font,
-                    Component.literal("§7" + line),
-                    cx, y, 0xAAAAAA
-                );
+                drawCentered(context, Component.literal("§7" + line), cx, y, 0xFFAAAAAA);
                 y += 10;
             }
         }
     }
-    
+
     private void renderRecipesTabInfo(GuiGraphicsExtractor context, int cx) {
         List<RecipeFeeder.Recipe> recipes;
-        
+
         if (!recipeSearchQuery.isEmpty()) {
             recipes = SlimefunRecipeLibrary.searchRecipes(recipeSearchQuery);
         } else if (selectedCategory.equals("all")) {
@@ -678,22 +676,18 @@ public class SlimefunConfigScreen extends Screen {
         } else {
             recipes = SlimefunRecipeLibrary.getRecipesByCategory(selectedCategory);
         }
-        
+
         String info = String.format("§7Showing %d recipes", recipes.size());
-        context.centeredText(
-            this.font,
-            Component.literal(info),
-            cx, this.height - 80, 0x666666
-        );
+        drawCentered(context, Component.literal(info), cx, this.height - 80, 0xFF666666);
     }
-    
+
     private List<String> wrapText(String text, int maxWidth) {
         List<String> lines = new java.util.ArrayList<>();
         String[] words = text.split(" ");
         StringBuilder currentLine = new StringBuilder();
-        
+
         for (String word : words) {
-            if (this.font.getWidth(currentLine + " " + word) < maxWidth) {
+            if (this.font.width(currentLine + " " + word) < maxWidth) {
                 if (currentLine.length() > 0) currentLine.append(" ");
                 currentLine.append(word);
             } else {
@@ -714,19 +708,20 @@ public class SlimefunConfigScreen extends Screen {
     }
     
     @Override
-    public void close() {
+    public void onClose() {
         if (this.minecraft != null) {
             this.minecraft.setScreen(this.parent);
         }
     }
-    
+
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
         if (keyCode == 256) { // ESC
-            this.close();
+            this.onClose();
             return true;
         }
-        
+
         // Quick tab switching with numbers
         if (keyCode >= 49 && keyCode <= 53) { // 1-5
             int tabIndex = keyCode - 49;
@@ -735,7 +730,7 @@ public class SlimefunConfigScreen extends Screen {
                 return true;
             }
         }
-        
-        return super.keyPressed(keyCode, scanCode, modifiers);
+
+        return super.keyPressed(event);
     }
 }

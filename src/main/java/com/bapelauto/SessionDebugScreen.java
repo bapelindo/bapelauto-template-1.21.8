@@ -1,13 +1,24 @@
 // ============================================
 // FILE: SessionDebugScreen.java (FIXED)
 // Path: src/main/java/com/bapelauto/SessionDebugScreen.java
+//
+// Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings), matching
+// the pattern already applied in AutoBotConfigScreen.java / AdvancedConfigScreen.java:
+//   - render(...) -> extractRenderState(...) (new render-extraction split)
+//   - close() -> onClose()
+//   - keyPressed(int,int,int) -> keyPressed(KeyEvent)
+//   - drawTextWithShadow/drawCenteredTextWithShadow -> text(...); centered
+//     variants compute centered x manually via font.width(component).
+//   - Colors passed to text(...) must be ARGB (0xFFrrggbb), not RGB.
 // ============================================
 package com.bapelauto;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 import java.util.List;
 
@@ -43,7 +54,7 @@ public class SessionDebugScreen extends Screen {
         
         // Close button
         this.addRenderableWidget(Button.builder(Component.literal("§c✖ Close"), b -> {
-            this.close();
+            this.onClose();
         }).bounds(cx - 100, btnY, 90, 20).build());
         
         // Refresh button
@@ -54,7 +65,7 @@ public class SessionDebugScreen extends Screen {
         // Force cleanup button
         this.addRenderableWidget(Button.builder(Component.literal("§e🧹 Cleanup"), b -> {
             if (this.minecraft != null && this.minecraft.player != null) {
-                this.minecraft.player.sendSystemMessage(Component.literal("§e[Session] Running cleanup..."), false);
+                this.minecraft.player.displayClientMessage(Component.literal("§e[Session] Running cleanup..."), false);
             }
             refreshSessions();
         }).bounds(cx - 100, btnY - 30, 90, 20).build());
@@ -63,56 +74,51 @@ public class SessionDebugScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.literal("§b📤 Export"), b -> {
             configManager.exportToGlobal();
             if (this.minecraft != null && this.minecraft.player != null) {
-                this.minecraft.player.sendSystemMessage(Component.literal("§a[Config] Exported to global"), false);
+                this.minecraft.player.displayClientMessage(Component.literal("§a[Config] Exported to global"), false);
             }
         }).bounds(cx + 10, btnY - 30, 90, 20).build());
     }
     
     @Override
-    public void render(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         // Background
         context.fillGradient(0, 0, this.width, this.height, 0xC0101010, 0xD0101010);
-        super.render(context, mouseX, mouseY, delta);
-        
+        super.extractRenderState(context, mouseX, mouseY, delta);
+
         // Auto-refresh
         if (System.currentTimeMillis() - lastRefresh > REFRESH_INTERVAL) {
             refreshSessions();
         }
-        
+
         int cx = this.width / 2;
         int y = 30;
-        
+
         // Title
-        context.centeredText(this.font, 
-            Component.literal("§6§lSession Manager Debug"), cx, y, 0xFFFFFF);
+        drawCentered(context, Component.literal("§6§lSession Manager Debug"), cx, y, 0xFFFFFFFF);
         y += 20;
-        
+
         // Current session info
         String currentSessionId = sessionManager.getSessionId();
-        String shortId = currentSessionId.length() > 30 ? 
+        String shortId = currentSessionId.length() > 30 ?
             currentSessionId.substring(0, 30) + "..." : currentSessionId;
-        
-        context.centeredText(this.font, 
-            Component.literal("§aCurrent Session: §f" + shortId), cx, y, 0xAAAAAA);
+
+        drawCentered(context, Component.literal("§aCurrent Session: §f" + shortId), cx, y, 0xFFAAAAAA);
         y += 15;
-        
-        context.centeredText(this.font, 
-            Component.literal("§aShard ID: §f" + configManager.getShardId().substring(0, 30) + "..."), cx, y, 0xAAAAAA);
+
+        drawCentered(context, Component.literal("§aShard ID: §f" + configManager.getShardId().substring(0, 30) + "..."), cx, y, 0xFFAAAAAA);
         y += 25;
-        
+
         // Separator
         context.fill(cx - 200, y, cx + 200, y + 1, 0xFF444444);
         y += 15;
-        
+
         // Active sessions header
-        context.centeredText(this.font, 
-            Component.literal("§e§lActive Sessions: §f" + sessions.size()), cx, y, 0xFFFF55);
+        drawCentered(context, Component.literal("§e§lActive Sessions: §f" + sessions.size()), cx, y, 0xFFFFFF55);
         y += 20;
-        
+
         // List sessions
         if (sessions.isEmpty()) {
-            context.centeredText(this.font, 
-                Component.literal("§7No active sessions found"), cx, y, 0x888888);
+            drawCentered(context, Component.literal("§7No active sessions found"), cx, y, 0xFF888888);
         } else {
             for (SessionManager.SessionInfo session : sessions) {
                 boolean isCurrent = session.sessionId.equals(currentSessionId);
@@ -122,9 +128,9 @@ public class SessionDebugScreen extends Screen {
                 String displayId = session.sessionId.length() > 35 ? 
                     session.sessionId.substring(0, 35) + "..." : session.sessionId;
                 
-                context.text(this.font, 
-                    Component.literal(prefix + displayId), 
-                    cx - 190, y, isCurrent ? 0x55FF55 : 0xCCCCCC);
+                context.text(this.font,
+                    Component.literal(prefix + displayId),
+                    cx - 190, y, isCurrent ? 0xFF55FF55 : 0xFFCCCCCC, true);
                 y += 12;
                 
                 // Session details
@@ -137,59 +143,60 @@ public class SessionDebugScreen extends Screen {
                 String details = String.format("    PID: %d | Realm: %s | Uptime: %s | Last seen: %ds ago",
                     session.pid, realm, uptimeStr, lastSeen);
                 
-                context.text(this.font, 
-                    Component.literal("§7" + details), 
-                    cx - 190, y, 0x888888);
+                context.text(this.font,
+                    Component.literal("§7" + details),
+                    cx - 190, y, 0xFF888888, true);
                 y += 12;
-                
+
                 // Alive status
                 String statusColor = session.isAlive() ? "§a" : "§c";
                 String statusText = session.isAlive() ? "ALIVE" : "STALE";
-                context.text(this.font, 
-                    Component.literal("    Status: " + statusColor + statusText), 
-                    cx - 190, y, 0x888888);
+                context.text(this.font,
+                    Component.literal("    Status: " + statusColor + statusText),
+                    cx - 190, y, 0xFF888888, true);
                 y += 18;
             }
         }
-        
+
         // Separator
         y += 5;
         context.fill(cx - 200, y, cx + 200, y + 1, 0xFF444444);
         y += 15;
-        
+
         // System info
-        context.centeredText(this.font, 
-            Component.literal("§b§lSystem Information"), cx, y, 0x55FFFF);
+        drawCentered(context, Component.literal("§b§lSystem Information"), cx, y, 0xFF55FFFF);
         y += 15;
-        
+
         long currentPid = ProcessHandle.current().pid();
-        context.text(this.font, 
-            Component.literal("§7Current Process ID: §f" + currentPid), 
-            cx - 190, y, 0xAAAAAA);
+        context.text(this.font,
+            Component.literal("§7Current Process ID: §f" + currentPid),
+            cx - 190, y, 0xFFAAAAAA, true);
         y += 12;
-        
+
         String configPath = configManager.getShardId() + ".properties";
-        context.text(this.font, 
-            Component.literal("§7Config File: §f" + configPath), 
-            cx - 190, y, 0xAAAAAA);
+        context.text(this.font,
+            Component.literal("§7Config File: §f" + configPath),
+            cx - 190, y, 0xFFAAAAAA, true);
         y += 12;
-        
+
         boolean autoLoad = AutoBotMod.getRealmTracker().isEnableAutoLoad();
         boolean resetPerRealm = AutoBotMod.getRealmTracker().isEnableResetPerRealm();
-        
-        context.text(this.font, 
-            Component.literal("§7Auto-Load: " + (autoLoad ? "§aENABLED" : "§cDISABLED")), 
-            cx - 190, y, 0xAAAAAA);
+
+        context.text(this.font,
+            Component.literal("§7Auto-Load: " + (autoLoad ? "§aENABLED" : "§cDISABLED")),
+            cx - 190, y, 0xFFAAAAAA, true);
         y += 12;
-        
-        context.text(this.font, 
-            Component.literal("§7Reset Per Realm: " + (resetPerRealm ? "§aENABLED" : "§cDISABLED")), 
-            cx - 190, y, 0xAAAAAA);
-        
+
+        context.text(this.font,
+            Component.literal("§7Reset Per Realm: " + (resetPerRealm ? "§aENABLED" : "§cDISABLED")),
+            cx - 190, y, 0xFFAAAAAA, true);
+
         // Footer
-        context.centeredText(this.font, 
-            Component.literal("§7Auto-refresh every 1 second"), 
-            cx, this.height - 60, 0x666666);
+        drawCentered(context, Component.literal("§7Auto-refresh every 1 second"), cx, this.height - 60, 0xFF666666);
+    }
+
+    private void drawCentered(GuiGraphicsExtractor context, MutableComponent text, int centerX, int y, int argbColor) {
+        context.text(this.font, text, centerX - this.font.width(text) / 2, y, argbColor, true);
     }
     
     private String formatUptime(long seconds) {
@@ -203,18 +210,18 @@ public class SessionDebugScreen extends Screen {
     }
     
     @Override
-    public void close() {
+    public void onClose() {
         if (this.minecraft != null) {
             this.minecraft.setScreen(this.parent);
         }
     }
-    
+
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 256) { // ESC
-            this.close();
+    public boolean keyPressed(KeyEvent event) {
+        if (event.key() == 256) { // ESC
+            this.onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 }

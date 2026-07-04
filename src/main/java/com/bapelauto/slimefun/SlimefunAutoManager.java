@@ -113,7 +113,7 @@ public class SlimefunAutoManager {
         machineUsageCount.put(machine, machineUsageCount.getOrDefault(machine, 0) + 1);
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a[Slimefun] Detected: " + machine.getDisplayName()), true
             );
         }
@@ -121,7 +121,7 @@ public class SlimefunAutoManager {
         if (SlimefunDetector.needsSpecialHandling(machine)) {
             String warning = SlimefunDetector.getSafetyWarning(machine);
             if (client.player != null && !warning.isEmpty()) {
-                client.player.sendSystemMessage(Component.literal(warning), true);
+                client.player.displayClientMessage(Component.literal(warning), true);
                 client.player.playSound(SoundEvents.ANVIL_LAND, 0.7F, 1.0F);
             }
         }
@@ -134,10 +134,10 @@ public class SlimefunAutoManager {
         slimefunModeEnabled = true;
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a§l[Slimefun Mode] ENABLED"), true
             );
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§7Bot will auto-detect and configure for Slimefun machines"), false
             );
             client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
@@ -158,7 +158,7 @@ public class SlimefunAutoManager {
         recipeFeeder.setEnabled(false);
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§c[Slimefun Mode] DISABLED"), true
             );
         }
@@ -171,7 +171,7 @@ public class SlimefunAutoManager {
         disable(client);
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§c§l[Slimefun] " + reason), true
             );
             client.player.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F);
@@ -184,7 +184,7 @@ public class SlimefunAutoManager {
     public void quickSetup(Minecraft client) {
         if (client.screen == null) {
             if (client.player != null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§c[Slimefun] Open a Slimefun machine GUI first!"), false
                 );
             }
@@ -195,7 +195,7 @@ public class SlimefunAutoManager {
         
         if (machine == SlimefunDetector.SlimefunMachine.UNKNOWN) {
             if (client.player != null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§c[Slimefun] Not a recognized Slimefun machine"), false
                 );
             }
@@ -213,10 +213,10 @@ public class SlimefunAutoManager {
             guiClickManager.clearTargets();
             
             if (client.player != null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§a✓ Auto-configured for " + machine.getDisplayName()), true
                 );
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§7Press [=] to start automation"), false
                 );
             }
@@ -239,7 +239,7 @@ public class SlimefunAutoManager {
         SlimefunProfilePresets.applyPreset(preset, client);
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a[Slimefun] Preset applied: " + preset.getName()), true
             );
         }
@@ -261,7 +261,7 @@ public class SlimefunAutoManager {
         }
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a[Auto-Input] ENABLED - Bot will automatically feed items to machine"),
                 true
             );
@@ -276,7 +276,7 @@ public class SlimefunAutoManager {
         inputFeeder.setEnabled(false);
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§c[Auto-Input] DISABLED"),
                 true
             );
@@ -318,13 +318,13 @@ public class SlimefunAutoManager {
         recipeFeeder.setEnabled(true);
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a[Auto-Recipe] ENABLED - Bot will maintain crafting recipe"),
                 true
             );
             
             if (recipeFeeder.getCurrentRecipe() == null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§7Use '/autobot recipe learn <name>' to learn current recipe"),
                     false
                 );
@@ -340,7 +340,7 @@ public class SlimefunAutoManager {
         recipeFeeder.setEnabled(false);
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§c[Auto-Recipe] DISABLED"),
                 true
             );
@@ -369,7 +369,7 @@ public class SlimefunAutoManager {
             recipeFeeder.saveRecipe(recipe);
             
             if (client.player != null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§a[Recipe] Learned and activated: " + recipeName),
                     true
                 );
@@ -387,14 +387,14 @@ public class SlimefunAutoManager {
             recipeFeeder.setRecipe(recipe);
             
             if (client.player != null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§a[Recipe] Loaded: " + recipeName),
                     true
                 );
             }
         } else {
             if (client.player != null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§c[Recipe] Not found: " + recipeName),
                     false
                 );
@@ -411,20 +411,20 @@ public class SlimefunAutoManager {
         var recipes = recipeFeeder.getAllRecipes();
         
         if (recipes.isEmpty()) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§c[Recipe] No saved recipes"),
                 false
             );
             return;
         }
         
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§e[Recipe] Saved Recipes:"),
             false
         );
         
         for (RecipeFeeder.Recipe recipe : recipes) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("  §7- §f" + recipe.getName()),
                 false
             );
@@ -468,39 +468,39 @@ public class SlimefunAutoManager {
     public void showDetailedStatus(Minecraft client) {
         if (client.player == null) return;
         
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§e§l=== Slimefun Status ==="),
             false
         );
         
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Slimefun Mode: " + (slimefunModeEnabled ? "§aON" : "§cOFF")),
             false
         );
         
         if (currentMachine != SlimefunDetector.SlimefunMachine.UNKNOWN) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§7Current Machine: §f" + currentMachine.getDisplayName()),
                 false
             );
         }
         
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7" + inputFeeder.getStatusInfo()),
             false
         );
         
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7" + recipeFeeder.getStatusInfo()),
             false
         );
         
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Total Clicks: §f" + totalSlimefunClicks),
             false
         );
         
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Items Collected: §f" + totalItemsCollected),
             false
         );
@@ -512,32 +512,32 @@ public class SlimefunAutoManager {
     public void showStatistics(Minecraft client) {
         if (client.player == null) return;
         
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§e§l=== Slimefun Statistics ==="), false
         );
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Status: " + (slimefunModeEnabled ? "§aENABLED" : "§cDISABLED")), false
         );
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Current Machine: §f" + 
                 (currentMachine != SlimefunDetector.SlimefunMachine.UNKNOWN ? 
                  currentMachine.getDisplayName() : "None")), false
         );
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Total Clicks: §f" + totalSlimefunClicks), false
         );
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Items Collected: §f" + totalItemsCollected), false
         );
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Items Fed: §f" + inputFeeder.getTotalItemsFed()), false
         );
-        client.player.sendSystemMessage(
+        client.player.displayClientMessage(
             Component.literal("§7Recipe Items Placed: §f" + recipeFeeder.getTotalItemsPlaced()), false
         );
         
         if (!machineUsageCount.isEmpty()) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§7Most Used Machines:"), false
             );
             
@@ -545,7 +545,7 @@ public class SlimefunAutoManager {
                 .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
                 .limit(5)
                 .forEach(entry -> {
-                    client.player.sendSystemMessage(
+                    client.player.displayClientMessage(
                         Component.literal("  §7• §f" + entry.getKey().getDisplayName() + 
                                    " §7(§f" + entry.getValue() + "x§7)"), false
                     );

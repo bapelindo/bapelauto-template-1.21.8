@@ -1,6 +1,14 @@
 // ============================================
 // FILE: VisualOverlay.java
 // Path: src/main/java/com/bapelauto/visual/VisualOverlay.java
+//
+// Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings).
+//   - GuiGraphics.drawTextWithShadow/drawCenteredTextWithShadow(Font, String,
+//     int, int, int) -> GuiGraphicsExtractor.text(Font, Component, int, int,
+//     int argb, boolean dropShadow); centered variants now compute the
+//     centered x manually via font.width(component) since there is no
+//     dedicated centered overload.
+//   - Colors passed to text(...) must be ARGB (0xFFrrggbb), not RGB.
 // ============================================
 package com.bapelauto.visual;
 
@@ -9,6 +17,8 @@ import com.bapelauto.click.ClickTarget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.inventory.Slot;
 
 import java.util.ArrayList;
@@ -73,30 +83,15 @@ public class VisualOverlay {
         // Note: This is a simplified version - actual slot highlighting requires more screen details
         
         // Draw target count
-        String targetText = "§6Targets: " + guiClickManager.getTargetCount();
-        context.text(
-            client.font,
-            targetText,
-            5, 5,
-            0xFFFFAA
-        );
-        
+        MutableComponent targetText = Component.literal("§6Targets: " + guiClickManager.getTargetCount());
+        context.text(client.font, targetText, 5, 5, 0xFFFFFFAA, true);
+
         // Draw mode and pattern
-        String modeText = "§7Mode: §f" + guiClickManager.getCurrentMode().getDisplayName();
-        context.text(
-            client.font,
-            modeText,
-            5, 17,
-            0xAAAAAA
-        );
-        
-        String patternText = "§7Pattern: §f" + guiClickManager.getTimingPattern().getDisplayName();
-        context.text(
-            client.font,
-            patternText,
-            5, 29,
-            0xAAAAAA
-        );
+        MutableComponent modeText = Component.literal("§7Mode: §f" + guiClickManager.getCurrentMode().getDisplayName());
+        context.text(client.font, modeText, 5, 17, 0xFFAAAAAA, true);
+
+        MutableComponent patternText = Component.literal("§7Pattern: §f" + guiClickManager.getTimingPattern().getDisplayName());
+        context.text(client.font, patternText, 5, 29, 0xFFAAAAAA, true);
     }
     
     private void renderStatsHud(GuiGraphicsExtractor context, Minecraft client) {
@@ -109,20 +104,15 @@ public class VisualOverlay {
         context.fill(x - 2, y - 2, x + 150, y + 75, 0x88000000);
         
         // Title
-        context.text(
-            client.font,
-            "§6§l[AutoBot Stats]",
-            x, y,
-            0xFFAA00
-        );
+        context.text(client.font, Component.literal("§6§l[AutoBot Stats]"), x, y, 0xFFFFAA00, true);
         y += 12;
-        
+
         // Stats
         var statsTracker = AutoBotMod.getStatsTracker();
         var worldManager = AutoBotMod.getWorldManager();
         var guiClickManager = AutoBotMod.getGuiClickManager();
         var inventoryManager = AutoBotMod.getInventoryManager();
-        
+
         String[] stats = {
             "§7World: §f" + worldManager.getTotalClicks(),
             "§7GUI: §f" + guiClickManager.getTotalClicks(),
@@ -130,14 +120,9 @@ public class VisualOverlay {
             "§7Cmds: §f" + statsTracker.getTotalCommands(),
             "§7Time: §f" + statsTracker.getFormattedDuration()
         };
-        
+
         for (String stat : stats) {
-            context.text(
-                client.font,
-                stat,
-                x, y,
-                0xAAAAAA
-            );
+            context.text(client.font, Component.literal(stat), x, y, 0xFFAAAAAA, true);
             y += 11;
         }
     }
@@ -151,13 +136,9 @@ public class VisualOverlay {
         context.fill(x, y, x + 115, y + 20, color);
         
         // Status text
-        String status = AutoBotMod.isRunning() ? "§a§lACTIVE" : "§c§lINACTIVE";
-        context.centeredText(
-            client.font,
-            status,
-            x + 57, y + 6,
-            0xFFFFFF
-        );
+        MutableComponent status = Component.literal(AutoBotMod.isRunning() ? "§a§lACTIVE" : "§c§lINACTIVE");
+        int statusCenterX = x + 57 - client.font.width(status) / 2;
+        context.text(client.font, status, statusCenterX, y + 6, 0xFFFFFFFF, true);
     }
     
     private void renderActiveFeatures(GuiGraphicsExtractor context, Minecraft client) {
@@ -183,22 +164,12 @@ public class VisualOverlay {
         context.fill(x, y, x + 115, y + (activeFeatures.size() * 11) + 15, 0x88000000);
         
         // Title
-        context.text(
-            client.font,
-            "§e§lActive Features",
-            x + 5, y + 3,
-            0xFFFF55
-        );
+        context.text(client.font, Component.literal("§e§lActive Features"), x + 5, y + 3, 0xFFFFFF55, true);
         y += 15;
-        
+
         // Features list
         for (String feature : activeFeatures) {
-            context.text(
-                client.font,
-                feature,
-                x + 5, y,
-                0xAAAAAA
-            );
+            context.text(client.font, Component.literal(feature), x + 5, y, 0xFFAAAAAA, true);
             y += 11;
         }
     }

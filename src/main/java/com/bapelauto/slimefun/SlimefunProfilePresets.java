@@ -331,10 +331,10 @@ public class SlimefunProfilePresets {
         configManager.saveConfig();
         
         if (client.player != null) {
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§a[Preset] Loaded: " + preset.getName()), true
             );
-            client.player.sendSystemMessage(
+            client.player.displayClientMessage(
                 Component.literal("§7" + preset.getDescription()), false
             );
             client.player.playSound(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
@@ -408,7 +408,7 @@ public class SlimefunProfilePresets {
         
         if (machine == SlimefunDetector.SlimefunMachine.UNKNOWN) {
             if (client.player != null) {
-                client.player.sendSystemMessage(
+                client.player.displayClientMessage(
                     Component.literal("§c[Slimefun] Not a recognized Slimefun machine"), false
                 );
             }
@@ -421,14 +421,14 @@ public class SlimefunProfilePresets {
         // Also show machine-specific instructions
         String instructions = SlimefunDetector.getMachineInstructions(machine);
         if (client.player != null && !instructions.isEmpty()) {
-            client.player.sendSystemMessage(Component.literal("§e➤ " + instructions), false);
+            client.player.displayClientMessage(Component.literal("§e➤ " + instructions), false);
         }
         
         // Show safety warnings if needed
         if (SlimefunDetector.needsSpecialHandling(machine)) {
             String warning = SlimefunDetector.getSafetyWarning(machine);
             if (client.player != null && !warning.isEmpty()) {
-                client.player.sendSystemMessage(Component.literal(warning), true);
+                client.player.displayClientMessage(Component.literal(warning), true);
                 client.player.playSound(net.minecraft.sounds.SoundEvents.ANVIL_LAND, 0.7F, 1.0F);
             }
         }
