@@ -95,7 +95,7 @@ public class RealmTracker {
     
     private String getServerAddress(Minecraft client) {
         if (client.getCurrentServer() != null) {
-            return client.getCurrentServer().address;
+            return client.getCurrentServer().ip;
         }
         return "";
     }

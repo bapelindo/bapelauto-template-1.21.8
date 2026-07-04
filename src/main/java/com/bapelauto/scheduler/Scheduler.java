@@ -6,9 +6,12 @@
 //   - player.networkHandler -> player.connection
 //   - connection.sendChatCommand(...) -> connection.sendCommand(...)
 //   - connection.sendChatMessage(...) -> connection.sendChat(...)
-//   - player.sendMessage(...) -> player.displayClientMessage(...)
+//   - player.sendMessage(...) -> ChatUtil.displayClientMessage(...) (LocalPlayer has
+//     no send/display-message method at all in this build; see util/ChatUtil.java)
 // ============================================
 package com.bapelauto.scheduler;
+
+import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -212,7 +215,7 @@ public class Scheduler {
 
                 case SEND_MESSAGE:
                     if (actionData != null) {
-                        client.player.displayClientMessage(Component.literal("§e[Scheduler] " + actionData), false);
+                        ChatUtil.displayClientMessage(client, Component.literal("§e[Scheduler] " + actionData), false);
                     }
                     break;
 

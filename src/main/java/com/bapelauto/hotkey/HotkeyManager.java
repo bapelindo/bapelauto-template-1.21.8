@@ -6,7 +6,7 @@
 //   - client.player.networkHandler -> client.player.connection
 //   - connection.sendChatCommand(...) -> connection.sendCommand(...)
 //   - connection.sendChatMessage(...) -> connection.sendChat(...)
-//   - client.player.sendMessage(...) -> client.player.displayClientMessage(...)
+//   - client.player.sendMessage(...) -> ChatUtil.displayClientMessage(client, ...)
 //   - client.screen is unchanged (still correct in 26.1)
 //   - InputConstants.getKey(keyCode, 0) -> getKey(KeyEvent); this method only
 //     has a bare keyCode to work with (no scancode/modifiers context), so a
@@ -14,6 +14,8 @@
 //   - SoundEvents.BLOCK_ANVIL_LAND -> SoundEvents.ANVIL_LAND
 // ============================================
 package com.bapelauto.hotkey;
+
+import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.KeyMapping;
@@ -182,7 +184,7 @@ public class HotkeyManager {
                         } else {
                             client.player.connection.sendChat(actionData);
                         }
-                        client.player.displayClientMessage(Component.literal("§e[Hotkey] Sent: " + actionData), true);
+                        ChatUtil.displayClientMessage(client, Component.literal("§e[Hotkey] Sent: " + actionData), true);
                     }
                     break;
 
@@ -199,13 +201,13 @@ public class HotkeyManager {
                     break;
 
                 case EMERGENCY_STOP:
-                    client.player.displayClientMessage(Component.literal("§c§l[EMERGENCY STOP] All features disabled!"), true);
+                    ChatUtil.displayClientMessage(client, Component.literal("§c§l[EMERGENCY STOP] All features disabled!"), true);
                     client.player.playSound(net.minecraft.sounds.SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
                     // This would need to call AutoBotMod methods to disable everything
                     break;
 
                 default:
-                    client.player.displayClientMessage(Component.literal("§e[Hotkey] " + action.getDisplayName()), true);
+                    ChatUtil.displayClientMessage(client, Component.literal("§e[Hotkey] " + action.getDisplayName()), true);
                     break;
             }
 

@@ -13,6 +13,8 @@
 // ============================================
 package com.bapelauto.slimefun;
 
+import com.bapelauto.util.ChatUtil;
+
 import com.bapelauto.AutoBotMod;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -211,7 +213,7 @@ public class SlimefunConfigScreen extends Screen {
             b -> {
                 slimefunManager.resetStatistics();
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.displayClientMessage(
+                    ChatUtil.displayClientMessage(this.minecraft, 
                         Component.literal("§e[Slimefun] Statistics reset"), false
                     );
                 }
@@ -315,7 +317,7 @@ public class SlimefunConfigScreen extends Screen {
                     recipeNameField.setText("");
                 } else {
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.displayClientMessage(
+                        ChatUtil.displayClientMessage(this.minecraft, 
                             Component.literal("§c[Recipe] Enter a name first!"), false
                         );
                     }
@@ -433,7 +435,7 @@ public class SlimefunConfigScreen extends Screen {
                 b -> {
                     slimefunManager.getRecipeFeeder().setRecipe(recipe);
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.displayClientMessage(
+                        ChatUtil.displayClientMessage(this.minecraft, 
                             Component.literal("§a[Recipe] Selected: " + recipe.getName()), true
                         );
                     }
@@ -496,7 +498,7 @@ public class SlimefunConfigScreen extends Screen {
                 Component.literal("§f" + preset.getName()),
                 b -> {
                     if (this.minecraft != null && this.minecraft.player != null) {
-                        this.minecraft.player.displayClientMessage(
+                        ChatUtil.displayClientMessage(this.minecraft, 
                             Component.literal("§7" + preset.getDescription()), false
                         );
                     }
@@ -563,7 +565,7 @@ public class SlimefunConfigScreen extends Screen {
             b -> {
                 slimefunManager.resetStatistics();
                 if (this.minecraft != null && this.minecraft.player != null) {
-                    this.minecraft.player.displayClientMessage(
+                    ChatUtil.displayClientMessage(this.minecraft, 
                         Component.literal("§e[Slimefun] All statistics reset"), false
                     );
                 }
@@ -579,34 +581,34 @@ public class SlimefunConfigScreen extends Screen {
     private void showHelp() {
         if (this.minecraft == null || this.minecraft.player == null) return;
         
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("§e§l=== Slimefun Quick Guide ==="), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("§6Main Tab:"), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("  §7• Enable Slimefun Mode"), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("  §7• Use Quick Setup for auto-config"), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("§6Automation Tab:"), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("  §7• Auto-Input: Feeds items to machines"), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("  §7• Auto-Recipe: Maintains crafting recipes"), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("§6Recipes Tab:"), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("  §7• Browse " + SlimefunRecipeLibrary.getRecipeCount() + "+ pre-made recipes"), false
         );
-        this.minecraft.player.displayClientMessage(
+        ChatUtil.displayClientMessage(this.minecraft, 
             Component.literal("  §7• Search and load instantly"), false
         );
     }

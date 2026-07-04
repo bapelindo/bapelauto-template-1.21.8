@@ -1,12 +1,21 @@
 // ============================================
 // FILE: ClickExecutor.java
 // Path: src/main/java/com/bapelauto/click/ClickExecutor.java
+//
+// UNVERIFIED: the compiler confirmed ClickType is no longer a member of
+// net.minecraft.world.inventory (nor nested under AbstractContainerMenu, the
+// first guess). Import below is a best-confidence guess that it moved into a
+// new net.minecraft.world.inventory.click subpackage, mirroring the same
+// "pull related types into a dedicated subpackage" pattern already confirmed
+// for input handling (net.minecraft.client.input.KeyEvent). If this still
+// fails to resolve, check your IDE for ClickType's real package/enclosing
+// class - handleInventoryMouseClick's signature may also have changed.
 // ============================================
 package com.bapelauto.click;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.click.ClickType;
 
 public class ClickExecutor {
     private int totalClicks = 0;

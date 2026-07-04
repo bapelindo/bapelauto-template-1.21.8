@@ -7,6 +7,9 @@
 //   - screen.getMenu() -> screen.getMenu()
 //   - handler.containerId -> handler.containerId
 //   - slot.hasItem()/getStack() -> slot.hasItem()/getItem()
+//   - ClickType import is an UNVERIFIED best-confidence guess; see the note
+//     in click/ClickExecutor.java for why it now points at
+//     net.minecraft.world.inventory.click.ClickType.
 // ============================================
 package com.bapelauto.inventory;
 
@@ -15,7 +18,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.click.ClickType;
 import net.minecraft.sounds.SoundEvents;
 
 public class InventoryManager {

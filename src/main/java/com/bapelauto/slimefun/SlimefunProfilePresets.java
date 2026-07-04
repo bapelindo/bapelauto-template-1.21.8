@@ -4,6 +4,8 @@
 // ============================================
 package com.bapelauto.slimefun;
 
+import com.bapelauto.util.ChatUtil;
+
 import com.bapelauto.AutoBotMod;
 import com.bapelauto.click.TimingPattern;
 import net.minecraft.client.Minecraft;
@@ -331,10 +333,10 @@ public class SlimefunProfilePresets {
         configManager.saveConfig();
         
         if (client.player != null) {
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§a[Preset] Loaded: " + preset.getName()), true
             );
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§7" + preset.getDescription()), false
             );
             client.player.playSound(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
@@ -408,7 +410,7 @@ public class SlimefunProfilePresets {
         
         if (machine == SlimefunDetector.SlimefunMachine.UNKNOWN) {
             if (client.player != null) {
-                client.player.displayClientMessage(
+                ChatUtil.displayClientMessage(client, 
                     Component.literal("§c[Slimefun] Not a recognized Slimefun machine"), false
                 );
             }
@@ -421,14 +423,14 @@ public class SlimefunProfilePresets {
         // Also show machine-specific instructions
         String instructions = SlimefunDetector.getMachineInstructions(machine);
         if (client.player != null && !instructions.isEmpty()) {
-            client.player.displayClientMessage(Component.literal("§e➤ " + instructions), false);
+            ChatUtil.displayClientMessage(client, Component.literal("§e➤ " + instructions), false);
         }
         
         // Show safety warnings if needed
         if (SlimefunDetector.needsSpecialHandling(machine)) {
             String warning = SlimefunDetector.getSafetyWarning(machine);
             if (client.player != null && !warning.isEmpty()) {
-                client.player.displayClientMessage(Component.literal(warning), true);
+                ChatUtil.displayClientMessage(client, Component.literal(warning), true);
                 client.player.playSound(net.minecraft.sounds.SoundEvents.ANVIL_LAND, 0.7F, 1.0F);
             }
         }

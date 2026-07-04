@@ -4,6 +4,8 @@
 // ============================================
 package com.bapelauto.conditional;
 
+import com.bapelauto.util.ChatUtil;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -147,16 +149,16 @@ public class ConditionalAction {
             case SEND_COMMAND:
                 if (actionData != null && !actionData.isEmpty()) {
                     if (actionData.startsWith("/")) {
-                        client.player.networkHandler.sendChatCommand(actionData.substring(1));
+                        client.player.connection.sendCommand(actionData.substring(1));
                     } else {
-                        client.player.networkHandler.sendChatMessage(actionData);
+                        client.player.connection.sendChat(actionData);
                     }
                 }
                 break;
                 
             case SEND_MESSAGE:
                 if (actionData != null) {
-                    client.player.displayClientMessage(net.minecraft.network.chat.Component.literal("§e[Auto] " + actionData), false);
+                    ChatUtil.displayClientMessage(client, net.minecraft.network.chat.Component.literal("§e[Auto] " + actionData), false);
                 }
                 break;
                 
@@ -166,7 +168,7 @@ public class ConditionalAction {
                 
             case STOP_BOT:
                 // This would need to call AutoBotMod to disable
-                client.player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c[Auto] Bot stopped by condition: " + description), true);
+                ChatUtil.displayClientMessage(client, net.minecraft.network.chat.Component.literal("§c[Auto] Bot stopped by condition: " + description), true);
                 break;
                 
             default:

@@ -3,9 +3,12 @@
 // Path: src/main/java/com/bapelauto/profile/ProfileManager.java
 //
 // Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings).
-//   - player.sendMessage(...) -> player.displayClientMessage(...)
+//   - player.sendMessage(...) -> ChatUtil.displayClientMessage(...) (LocalPlayer has
+//     no send/display-message method at all in this build; see util/ChatUtil.java)
 // ============================================
 package com.bapelauto.profile;
+
+import com.bapelauto.util.ChatUtil;
 
 import com.bapelauto.ShardedConfigManager;
 import net.minecraft.client.Minecraft;
@@ -84,7 +87,7 @@ public class ProfileManager {
             Path profilePath = Paths.get(PROFILES_DIR, profileName + ".json");
             if (!Files.exists(profilePath)) {
                 if (client.player != null) {
-                    client.player.displayClientMessage(Component.literal("§c[Profile] Not found: " + profileName), false);
+                    ChatUtil.displayClientMessage(client, Component.literal("§c[Profile] Not found: " + profileName), false);
                 }
                 return false;
             }
@@ -101,7 +104,7 @@ public class ProfileManager {
             loadedProfiles.put(profileName, profile);
 
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§a[Profile] Loaded: " + profileName), true);
+                ChatUtil.displayClientMessage(client, Component.literal("§a[Profile] Loaded: " + profileName), true);
                 client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
             }
 
@@ -119,7 +122,7 @@ public class ProfileManager {
             loadedProfiles.remove(profileName);
 
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§e[Profile] Deleted: " + profileName), false);
+                ChatUtil.displayClientMessage(client, Component.literal("§e[Profile] Deleted: " + profileName), false);
             }
         } catch (Exception e) {
             System.err.println("[ProfileManager] Delete failed: " + e.getMessage());
@@ -157,7 +160,7 @@ public class ProfileManager {
         List<Profile> profiles = getAvailableProfiles();
         if (profiles.isEmpty()) {
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§c[Profile] No profiles available"), false);
+                ChatUtil.displayClientMessage(client, Component.literal("§c[Profile] No profiles available"), false);
             }
             return;
         }

@@ -4,6 +4,8 @@
 // ============================================
 package com.bapelauto.slimefun;
 
+import com.bapelauto.util.ChatUtil;
+
 import com.bapelauto.click.ClickTarget;
 import com.bapelauto.click.TimingPattern;
 import net.minecraft.client.Minecraft;
@@ -242,7 +244,7 @@ public class SlimefunDetector {
         }
         
         if (client.player != null && !targets.isEmpty()) {
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§a[Slimefun] Detected " + machine.getDisplayName() + 
                            " - " + targets.size() + " output slots"), 
                 true
@@ -284,22 +286,22 @@ public class SlimefunDetector {
     public static void autoConfigureForSlimefun(Minecraft client, SlimefunMachine machine) {
         if (client.player == null) return;
         
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§e§l[Slimefun Auto-Config]"), false
         );
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§7Machine: §f" + machine.getDisplayName()), false
         );
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§7Type: §f" + machine.getDescription()), false
         );
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§7Pattern: §f" + machine.getRecommendedPattern().getDisplayName()), false
         );
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§7Delay: §f" + machine.getRecommendedDelay() + "ms"), false
         );
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§a✓ Press [=] to start automation"), false
         );
     }

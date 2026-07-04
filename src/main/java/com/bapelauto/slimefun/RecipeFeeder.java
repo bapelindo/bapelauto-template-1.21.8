@@ -1,8 +1,14 @@
 // ============================================
 // FILE: RecipeFeeder.java
 // Path: src/main/java/com/bapelauto/slimefun/RecipeFeeder.java
+//
+// ClickType import is an UNVERIFIED best-confidence guess; see the note in
+// click/ClickExecutor.java for why it now points at
+// net.minecraft.world.inventory.click.ClickType.
 // ============================================
 package com.bapelauto.slimefun;
+
+import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -10,7 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.click.ClickType;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -214,7 +220,7 @@ public class RecipeFeeder {
         
         // If we get here, we couldn't feed any items (probably missing from inventory)
         if (autoDetectMode && client.player != null) {
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§c[Recipe Feeder] Missing required items for recipe!"),
                 true
             );
@@ -284,7 +290,7 @@ public class RecipeFeeder {
                     totalItemsPlaced++;
                     
                     if (client.player != null) {
-                        client.player.displayClientMessage(
+                        ChatUtil.displayClientMessage(client, 
                             Component.literal("§a[Recipe] Placed " + stack.getItem().getName().getString() + 
                                        " in slot " + targetSlot),
                             true
@@ -332,7 +338,7 @@ public class RecipeFeeder {
         
         if (learned.isEmpty()) {
             if (client.player != null) {
-                client.player.displayClientMessage(
+                ChatUtil.displayClientMessage(client, 
                     Component.literal("§c[Recipe] No items in crafting grid to learn!"),
                     false
                 );
@@ -346,7 +352,7 @@ public class RecipeFeeder {
         Recipe recipe = new Recipe(recipeName, learned, outputSlot);
         
         if (client.player != null) {
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§a[Recipe] Learned recipe: " + recipeName + " (" + learned.size() + " ingredients)"),
                 true
             );
