@@ -2,9 +2,8 @@
 // FILE: RecipeFeeder.java
 // Path: src/main/java/com/bapelauto/slimefun/RecipeFeeder.java
 //
-// ClickType import is an UNVERIFIED best-confidence guess; see the note in
-// click/ClickExecutor.java for why it now points at
-// net.minecraft.world.inventory.click.ClickType.
+// ClickType was renamed to ContainerInput (confirmed via real
+// AbstractContainerMenu source); see click/ClickExecutor.java for details.
 // ============================================
 package com.bapelauto.slimefun;
 
@@ -16,7 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.click.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -254,13 +253,13 @@ public class RecipeFeeder {
                     if (toTake == stack.getCount()) {
                         // Take all
                         client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, i, 0, ClickType.PICKUP, client.player
+                            handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     } else {
                         // Take partial (right-click to take half, or shift-click logic)
                         // For simplicity, take all and put back extra
                         client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, i, 0, ClickType.PICKUP, client.player
+                            handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     }
                     
@@ -271,19 +270,19 @@ public class RecipeFeeder {
                     if (recipeSlot.getItem().isEmpty()) {
                         // Slot is empty, place item
                         client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, targetSlot, 0, ClickType.PICKUP, client.player
+                            handler.containerId, targetSlot, 0, ContainerInput.PICKUP, client.player
                         );
                     } else {
                         // Slot has items, add to stack
                         client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, targetSlot, 0, ClickType.PICKUP, client.player
+                            handler.containerId, targetSlot, 0, ContainerInput.PICKUP, client.player
                         );
                     }
                     
                     // Put back any remaining items
                     if (!client.player.containerMenu.getCarried().isEmpty()) {
                         client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, i, 0, ClickType.PICKUP, client.player
+                            handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     }
                     

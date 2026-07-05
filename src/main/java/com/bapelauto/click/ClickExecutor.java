@@ -2,14 +2,11 @@
 // FILE: ClickExecutor.java
 // Path: src/main/java/com/bapelauto/click/ClickExecutor.java
 //
-// UNVERIFIED: the compiler confirmed ClickType is no longer a member of
-// net.minecraft.world.inventory (nor nested under AbstractContainerMenu, the
-// first guess). Import below is a best-confidence guess that it moved into a
-// new net.minecraft.world.inventory.click subpackage, mirroring the same
-// "pull related types into a dedicated subpackage" pattern already confirmed
-// for input handling (net.minecraft.client.input.KeyEvent). If this still
-// fails to resolve, check your IDE for ClickType's real package/enclosing
-// class - handleInventoryMouseClick's signature may also have changed.
+// CONFIRMED (real AbstractContainerMenu source pasted by the user): ClickType
+// was renamed to ContainerInput, staying in net.minecraft.world.inventory
+// (same package as AbstractContainerMenu, which is why that class uses it
+// unqualified with no import). Same constant names (PICKUP, QUICK_MOVE,
+// SWAP, CLONE, THROW, PICKUP_ALL, QUICK_CRAFT).
 //
 // CONFIRMED (real source pasted by the user): screen.mouseClicked/
 // mouseReleased(double, double, int) were replaced by
@@ -24,7 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.input.MouseButtonInfo;
-import net.minecraft.world.inventory.click.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 
 public class ClickExecutor {
     private int totalClicks = 0;
@@ -51,7 +48,7 @@ public class ClickExecutor {
                     screen.getMenu().containerId,
                     slotId,
                     0, 
-                    ClickType.PICKUP, 
+                    ContainerInput.PICKUP, 
                     client.player
                 );
                 totalClicks++;

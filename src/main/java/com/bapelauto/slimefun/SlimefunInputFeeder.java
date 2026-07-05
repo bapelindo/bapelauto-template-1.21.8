@@ -14,9 +14,9 @@
 //   - player.sendMessage(...) -> ChatUtil.displayClientMessage(...)
 //     (LocalPlayer no longer has any send/display-message method at all;
 //     see util/ChatUtil.java for the real replacement and its caveats)
-//   - ClickType import is an UNVERIFIED best-confidence guess; see the note
-//     in click/ClickExecutor.java for why it now points at
-//     net.minecraft.world.inventory.click.ClickType.
+//   - ClickType was renamed to ContainerInput (confirmed via real
+//     AbstractContainerMenu source); see click/ClickExecutor.java for
+//     details.
 // ============================================
 package com.bapelauto.slimefun;
 
@@ -27,7 +27,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.click.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -134,18 +134,18 @@ public class SlimefunInputFeeder {
                 try {
                     // Pick up item from player inventory
                     client.gameMode.handleInventoryMouseClick(
-                        handler.containerId, i, 0, ClickType.PICKUP, client.player
+                        handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                     );
 
                     // Place in machine input slot
                     client.gameMode.handleInventoryMouseClick(
-                        handler.containerId, targetSlot, 0, ClickType.PICKUP, client.player
+                        handler.containerId, targetSlot, 0, ContainerInput.PICKUP, client.player
                     );
 
                     // If still holding items, put them back
                     if (!client.player.containerMenu.getCarried().isEmpty()) {
                         client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, i, 0, ClickType.PICKUP, client.player
+                            handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     }
 
