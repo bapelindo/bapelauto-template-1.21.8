@@ -22,6 +22,8 @@
 // ============================================
 package com.bapelauto.click;
 
+import com.bapelauto.util.Log;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -39,7 +41,7 @@ public class ClickExecutor {
                 return clickPoint(client, target.x, target.y);
             }
         } catch (Exception e) {
-            System.err.println("[ClickExecutor] Error: " + e.getMessage());
+            Log.error("[ClickExecutor] Error", e);
         }
         return false;
     }
@@ -60,7 +62,7 @@ public class ClickExecutor {
                 return true;
             }
         } catch (Exception e) {
-            System.err.println("[ClickExecutor] Slot click error: " + e.getMessage());
+            Log.error("[ClickExecutor] Slot click error", e);
         }
         return false;
     }
@@ -75,7 +77,7 @@ public class ClickExecutor {
             totalClicks++;
             return true;
         } catch (Exception e) {
-            System.err.println("[ClickExecutor] Point click error: " + e.getMessage());
+            Log.error("[ClickExecutor] Point click error", e);
         }
         return false;
     }

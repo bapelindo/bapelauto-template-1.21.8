@@ -40,7 +40,10 @@
 // ============================================
 package com.bapelauto;
 
+import com.bapelauto.util.Log;
+
 import com.bapelauto.util.ChatUtil;
+import com.bapelauto.util.Notify;
 
 import com.bapelauto.click.*;
 import com.bapelauto.world.WorldInteractionManager;
@@ -125,6 +128,11 @@ public class AutoBotMod implements ClientModInitializer {
     private static boolean botRunning = false;
     private boolean hotkeysInitialized = false; // Flag for lazy init
 
+    // Safety net: auto-disable the bot on disconnect or death so it never
+    // keeps running against a stale/dead/different-world player state.
+    private boolean wasConnected = false;
+    private boolean wasDead = false;
+
     // Basic configs
     private static boolean commandEnabled = false;
     private static boolean showGuiButtons = true;
@@ -134,7 +142,7 @@ public class AutoBotMod implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        System.out.println("[AutoBot] Starting initialization sequence...");
+        Log.info("[AutoBot] Starting initialization sequence...");
         try {
             // 1. Initialize CORE managers (Memory objects only)
             sessionManager = new SessionManager();
@@ -158,7 +166,7 @@ public class AutoBotMod implements ClientModInitializer {
 
             // NOTE: initializeDefaultHotkeys() removed from here to prevent GLFW crash
 
-            System.out.println("[AutoBot v" + VERSION + "] CORE MANAGERS READY");
+            Log.info("[AutoBot v" + VERSION + "] CORE MANAGERS READY");
 
             // 4. Register Keybindings (Safe to do here as they are just registration)
             registerKeybindings();
@@ -166,14 +174,13 @@ public class AutoBotMod implements ClientModInitializer {
             // 5. Register Events
             registerEvents();
 
-            System.out.println("[AutoBot v" + VERSION + "] PRE-INIT COMPLETE");
+            Log.info("[AutoBot v" + VERSION + "] PRE-INIT COMPLETE");
 
             // Shutdown hook
             Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
 
         } catch (Exception e) {
-            System.err.println("[AutoBot] FATAL ERROR: " + e.getMessage());
-            e.printStackTrace();
+            Log.error("[AutoBot] FATAL ERROR", e);
         }
     }
 
@@ -212,7 +219,7 @@ public class AutoBotMod implements ClientModInitializer {
             slimefunManager.setSafetyMode(configManager.getBoolean("slimefunSafetyMode", true));
 
         } catch (Exception e) {
-            System.err.println("[AutoBot] Config load error (non-fatal): " + e.getMessage());
+            Log.error("[AutoBot] Config load error (non-fatal)", e);
         }
     }
 
@@ -303,15 +310,38 @@ public class AutoBotMod implements ClientModInitializer {
     }
 
     private void handleTick(Minecraft client) {
+        // Safety net: if the bot was running and we just lost the player
+        // (disconnected, world unload, etc.), force it off instead of letting
+        // it silently resume automation on whatever the player reconnects to.
+        if (wasConnected && client.player == null && botRunning) {
+            botRunning = false;
+            wasDead = false;
+            if (worldManager != null) worldManager.disableAll();
+            if (inventoryManager != null) inventoryManager.disableAll();
+            if (guiClickManager != null) guiClickManager.clearTargets();
+            commandEnabled = false;
+            Log.warn("[AutoBot] Disconnected while running - master toggle forced OFF for safety.");
+        }
+        wasConnected = client.player != null;
+
         // LAZY INITIALIZATION - Fix for GLFW crash
         // Only register default hotkeys AFTER the game is running and the player exists
         if (!hotkeysInitialized && client.player != null) {
             initializeDefaultHotkeys();
             hotkeysInitialized = true;
-            System.out.println("[AutoBot] Late initialization complete.");
+            Log.info("[AutoBot] Late initialization complete.");
         }
 
         if (client.player == null) return;
+
+        // Safety net: auto-disable on death so automation doesn't keep
+        // clicking/interacting against a dead player or fresh respawn state.
+        boolean isDead = client.player.isDeadOrDying();
+        if (isDead && !wasDead && botRunning) {
+            toggleMaster(client);
+            Notify.warning(client, "Bot auto-disabled: you died");
+        }
+        wasDead = isDead;
 
         // Key checks
         if (toggleBotKey.consumeClick()) toggleMaster(client);
@@ -467,7 +497,7 @@ public class AutoBotMod implements ClientModInitializer {
             hotkeyManager.registerHotkey("quick_steal", GLFW.GLFW_KEY_KP_7, HotkeyManager.HotkeyAction.QUICK_STEAL, null);
             hotkeyManager.registerHotkey("quick_store", GLFW.GLFW_KEY_KP_9, HotkeyManager.HotkeyAction.QUICK_STORE, null);
         } catch (Exception e) {
-            System.err.println("[AutoBot] Failed to register default hotkeys: " + e.getMessage());
+            Log.error("[AutoBot] Failed to register default hotkeys", e);
         }
     }
 
@@ -493,7 +523,7 @@ public class AutoBotMod implements ClientModInitializer {
         }
 
         configManager.saveConfig();
-        System.out.println("[AutoBot] Configuration saved");
+        Log.info("[AutoBot] Configuration saved");
     }
 
     private void shutdown() {

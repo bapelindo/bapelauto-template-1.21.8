@@ -1,6 +1,8 @@
 // Path: src/main/java/com/bapelauto/SessionManager.java
 package com.bapelauto;
 
+import com.bapelauto.util.Log;
+
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
@@ -66,11 +68,10 @@ public class SessionManager {
             // Add shutdown hook
             addShutdownHook();
             
-            System.out.println("[SessionManager] Initialized with ID: " + sessionId);
+            Log.info("[SessionManager] Initialized with ID: " + sessionId);
             
         } catch (Exception e) {
-            System.err.println("[SessionManager] Initialization failed: " + e.getMessage());
-            e.printStackTrace();
+            Log.error("[SessionManager] Initialization failed", e);
         }
     }
     
@@ -88,7 +89,7 @@ public class SessionManager {
         
         fileLock = lockChannel.tryLock();
         if (fileLock == null) {
-            System.out.println("[SessionManager] Lock already held by another instance");
+            Log.info("[SessionManager] Lock already held by another instance");
             // Continue anyway - we use soft locking
         }
     }
@@ -105,7 +106,7 @@ public class SessionManager {
         Files.write(sessionFile, serializeSession(info));
         updateRegistry();
         
-        System.out.println("[SessionManager] Session registered: " + sessionId);
+        Log.info("[SessionManager] Session registered: " + sessionId);
     }
     
     private void updateRegistry() throws IOException {
@@ -143,7 +144,7 @@ public class SessionManager {
                 } catch (InterruptedException e) {
                     break;
                 } catch (Exception e) {
-                    System.err.println("[SessionManager] Heartbeat error: " + e.getMessage());
+                    Log.error("[SessionManager] Heartbeat error", e);
                 }
             }
         }, "SessionManager-Heartbeat");
@@ -162,7 +163,7 @@ public class SessionManager {
             );
             Files.write(sessionFile, serializeSession(info));
         } catch (IOException e) {
-            System.err.println("[SessionManager] Failed to update session file: " + e.getMessage());
+            Log.error("[SessionManager] Failed to update session file", e);
         }
     }
     
@@ -184,7 +185,7 @@ public class SessionManager {
                             // Verify process is not running
                             if (!isProcessAlive(info.pid)) {
                                 Files.deleteIfExists(sessionPath);
-                                System.out.println("[SessionManager] Cleaned stale session: " + info.sessionId);
+                                Log.info("[SessionManager] Cleaned stale session: " + info.sessionId);
                             }
                         }
                     } catch (Exception e) {
@@ -200,7 +201,7 @@ public class SessionManager {
             updateRegistry();
             
         } catch (Exception e) {
-            System.err.println("[SessionManager] Cleanup error: " + e.getMessage());
+            Log.error("[SessionManager] Cleanup error", e);
         }
     }
     
@@ -239,7 +240,7 @@ public class SessionManager {
                 .collect(Collectors.toList());
                 
         } catch (Exception e) {
-            System.err.println("[SessionManager] Failed to get active sessions: " + e.getMessage());
+            Log.error("[SessionManager] Failed to get active sessions", e);
         }
         
         return sessions;
@@ -271,7 +272,7 @@ public class SessionManager {
     }
     
     public void shutdown() {
-        System.out.println("[SessionManager] Shutting down session: " + sessionId);
+        Log.info("[SessionManager] Shutting down session: " + sessionId);
         running = false;
         
         if (cleanupThread != null) {
@@ -283,7 +284,7 @@ public class SessionManager {
             Files.deleteIfExists(sessionFile);
             updateRegistry();
         } catch (IOException e) {
-            System.err.println("[SessionManager] Failed to delete session file: " + e.getMessage());
+            Log.error("[SessionManager] Failed to delete session file", e);
         }
         
         // Release lock
@@ -295,10 +296,10 @@ public class SessionManager {
                 lockChannel.close();
             }
         } catch (IOException e) {
-            System.err.println("[SessionManager] Failed to release lock: " + e.getMessage());
+            Log.error("[SessionManager] Failed to release lock", e);
         }
         
-        System.out.println("[SessionManager] Session terminated: " + sessionId);
+        Log.info("[SessionManager] Session terminated: " + sessionId);
     }
     
     private void addShutdownHook() {
