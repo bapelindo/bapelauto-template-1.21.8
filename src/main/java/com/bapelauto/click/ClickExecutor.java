@@ -10,11 +10,20 @@
 // for input handling (net.minecraft.client.input.KeyEvent). If this still
 // fails to resolve, check your IDE for ClickType's real package/enclosing
 // class - handleInventoryMouseClick's signature may also have changed.
+//
+// CONFIRMED (real source pasted by the user): screen.mouseClicked/
+// mouseReleased(double, double, int) were replaced by
+// mouseClicked(MouseButtonEvent, boolean doubleClick) and
+// mouseReleased(MouseButtonEvent). MouseButtonEvent is a record
+// (double x, double y, MouseButtonInfo buttonInfo) and MouseButtonInfo is a
+// record (int button, int modifiers) - both in net.minecraft.client.input.
 // ============================================
 package com.bapelauto.click;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.world.inventory.click.ClickType;
 
 public class ClickExecutor {
@@ -58,8 +67,9 @@ public class ClickExecutor {
         if (client.screen == null) return false;
         
         try {
-            client.screen.mouseClicked(x, y, 0);
-            client.screen.mouseReleased(x, y, 0);
+            MouseButtonEvent event = new MouseButtonEvent(x, y, new MouseButtonInfo(0, 0));
+            client.screen.mouseClicked(event, false);
+            client.screen.mouseReleased(event);
             totalClicks++;
             return true;
         } catch (Exception e) {

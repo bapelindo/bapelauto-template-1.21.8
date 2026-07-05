@@ -18,18 +18,18 @@
 // (Component, MessageSignature, GuiMessageSource, GuiMessageTag) - there is
 // no 1-arg convenience overload anymore.
 //
-// UNVERIFIED (guessed, not compiler-confirmed): passing null for
-// MessageSignature/GuiMessageTag (no signature/badge needed for a locally
-// generated message) and GuiMessageSource.SYSTEM for the source, following
-// the same SYSTEM-for-non-player-messages convention used elsewhere in
-// Minecraft (e.g. ChatType.SYSTEM). If GuiMessageSource has no SYSTEM
-// constant, check what values your IDE offers for that enum.
+// CONFIRMED: net.minecraft.client.multiplayer.chat.GuiMessageSource is an
+// enum with exactly PLAYER, SYSTEM_SERVER, SYSTEM_CLIENT (real source
+// pasted by the user). This message is generated locally by the mod, not
+// relayed from the server, so SYSTEM_CLIENT is the correct source - not a
+// guess. null is passed for MessageSignature/GuiMessageTag since this isn't
+// a signed player message and needs no badge.
 // ============================================
 package com.bapelauto.util;
 
 import net.minecraft.client.GuiMessageTag;
-import net.minecraft.client.GuiMessageSource;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.chat.GuiMessageSource;
 import net.minecraft.network.chat.Component;
 
 public final class ChatUtil {
@@ -40,7 +40,7 @@ public final class ChatUtil {
         if (actionBar) {
             client.gui.setOverlayMessage(message, false);
         } else {
-            client.gui.getChat().addMessage(message, null, GuiMessageSource.SYSTEM, null);
+            client.gui.getChat().addMessage(message, null, GuiMessageSource.SYSTEM_CLIENT, null);
         }
     }
 }
