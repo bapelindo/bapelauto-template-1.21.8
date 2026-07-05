@@ -11,6 +11,8 @@
 // ============================================
 package com.bapelauto.scheduler;
 
+import com.bapelauto.util.Log;
+
 import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
@@ -71,7 +73,7 @@ public class Scheduler {
      */
     public void addTask(ScheduledTask task) {
         tasks.add(task);
-        System.out.println("[Scheduler] Added task: " + task.getName());
+        Log.info("[Scheduler] Added task: " + task.getName());
     }
 
     /**
@@ -234,7 +236,7 @@ public class Scheduler {
                 updateNextDailyExecution();
             }
 
-            System.out.println("[Scheduler] Executed task: " + name + " (count: " + executionCount + ")");
+            Log.info("[Scheduler] Executed task: " + name + " (count: " + executionCount + ")");
         }
 
         private void updateNextDailyExecution() {

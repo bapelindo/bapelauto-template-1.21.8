@@ -23,6 +23,7 @@
 package com.bapelauto;
 
 import com.bapelauto.util.ChatUtil;
+import com.bapelauto.util.Notify;
 
 import com.bapelauto.click.TimingPattern;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -31,6 +32,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
+
+import java.util.Set;
 
 /**
  * Main configuration screen for AutoBot
@@ -133,6 +136,37 @@ public class AutoBotConfigScreen extends Screen {
         inventoryDelayField.setValue(String.valueOf(AutoBotMod.getInventoryManager().getInventoryDelay()));
         inventoryDelayField.setHint(Component.literal("Inventory delay (ms)"));
         this.addRenderableWidget(inventoryDelayField);
+
+        startY += 25;
+
+        // Protect held item - auto-steal/auto-store will never touch it
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§eProtect Held Item"),
+            b -> {
+                var im = AutoBotMod.getInventoryManager();
+                if (this.minecraft != null && this.minecraft.player != null) {
+                    var held = this.minecraft.player.getMainHandItem();
+                    if (!held.isEmpty()) {
+                        String itemId = held.getItem().toString();
+                        im.addProtectedItem(itemId);
+                        Notify.success(this.minecraft, "Protected " + itemId + " from auto-steal/store");
+                    } else {
+                        Notify.warning(this.minecraft, "Hold an item first");
+                    }
+                }
+            }
+        ).bounds(cx - 150, startY, 145, 20).build());
+
+        this.addRenderableWidget(Button.builder(
+            Component.literal("§7Clear Protected (" + AutoBotMod.getInventoryManager().getProtectedItems().size() + ")"),
+            b -> {
+                var im = AutoBotMod.getInventoryManager();
+                for (String itemId : Set.copyOf(im.getProtectedItems())) {
+                    im.removeProtectedItem(itemId);
+                }
+                b.setMessage(Component.literal("§7Clear Protected (0)"));
+            }
+        ).bounds(cx + 5, startY, 145, 20).build());
 
         startY += 35;
 

@@ -1,6 +1,8 @@
 // Path: src/main/java/com/bapelauto/ShardedConfigManager.java
 package com.bapelauto;
 
+import com.bapelauto.util.Log;
+
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
@@ -45,10 +47,10 @@ public class ShardedConfigManager {
             // Load initial config
             loadConfig();
             
-            System.out.println("[ShardedConfig] Initialized shard: " + shardId);
+            Log.info("[ShardedConfig] Initialized shard: " + shardId);
             
         } catch (Exception e) {
-            System.err.println("[ShardedConfig] Initialization failed: " + e.getMessage());
+            Log.error("[ShardedConfig] Initialization failed", e);
         }
     }
     
@@ -66,23 +68,23 @@ public class ShardedConfigManager {
             // Try shard config first
             if (Files.exists(shardConfigPath)) {
                 loadFromFile(shardConfigPath);
-                System.out.println("[ShardedConfig] Loaded shard config: " + shardId);
+                Log.info("[ShardedConfig] Loaded shard config: " + shardId);
             }
             // Fall back to global
             else if (Files.exists(globalConfigPath)) {
                 loadFromFile(globalConfigPath);
-                System.out.println("[ShardedConfig] Loaded global config (no shard found)");
+                Log.info("[ShardedConfig] Loaded global config (no shard found)");
             }
             // Use defaults
             else {
                 loadDefaults();
-                System.out.println("[ShardedConfig] Loaded default config");
+                Log.info("[ShardedConfig] Loaded default config");
             }
             
             lastLoadTime = System.currentTimeMillis();
             
         } catch (Exception e) {
-            System.err.println("[ShardedConfig] Load failed: " + e.getMessage());
+            Log.error("[ShardedConfig] Load failed", e);
             loadDefaults();
         } finally {
             lock.writeLock().unlock();
@@ -133,12 +135,10 @@ public class ShardedConfigManager {
             // Save to shard file
             Properties props = new Properties();
             configCache.forEach(props::setProperty);
-            
-            try (OutputStream out = Files.newOutputStream(shardConfigPath)) {
-                props.store(out, "AutoBot Shard Config - Session: " + shardId);
-            }
-            
-            System.out.println("[ShardedConfig] Saved shard config: " + shardId);
+
+            writePropertiesAtomically(shardConfigPath, props, "AutoBot Shard Config - Session: " + shardId);
+
+            Log.info("[ShardedConfig] Saved shard config: " + shardId);
             
             // Also update global config if this is the only session
             if (sessionManager.isOnlyActiveSession()) {
@@ -146,7 +146,7 @@ public class ShardedConfigManager {
             }
             
         } catch (Exception e) {
-            System.err.println("[ShardedConfig] Save failed: " + e.getMessage());
+            Log.error("[ShardedConfig] Save failed", e);
         } finally {
             lock.readLock().unlock();
         }
@@ -156,15 +156,31 @@ public class ShardedConfigManager {
         try {
             Properties props = new Properties();
             configCache.forEach(props::setProperty);
-            
-            try (OutputStream out = Files.newOutputStream(globalConfigPath)) {
-                props.store(out, "AutoBot Global Config");
-            }
-            
-            System.out.println("[ShardedConfig] Updated global config");
-            
+
+            writePropertiesAtomically(globalConfigPath, props, "AutoBot Global Config");
+
+            Log.info("[ShardedConfig] Updated global config");
+
         } catch (Exception e) {
-            System.err.println("[ShardedConfig] Failed to update global: " + e.getMessage());
+            Log.error("[ShardedConfig] Failed to update global", e);
+        }
+    }
+
+    /**
+     * Write properties to a temp file in the same directory, then atomically
+     * move it into place, so a crash mid-write can never leave a corrupt or
+     * half-written config file behind.
+     */
+    private void writePropertiesAtomically(Path target, Properties props, String comment) throws IOException {
+        Path tempFile = target.resolveSibling(target.getFileName().toString() + ".tmp");
+        try (OutputStream out = Files.newOutputStream(tempFile,
+                StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+            props.store(out, comment);
+        }
+        try {
+            Files.move(tempFile, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(tempFile, target, StandardCopyOption.REPLACE_EXISTING);
         }
     }
     
@@ -178,7 +194,7 @@ public class ShardedConfigManager {
             cleanupOldBackups();
             
         } catch (Exception e) {
-            System.err.println("[ShardedConfig] Backup failed: " + e.getMessage());
+            Log.error("[ShardedConfig] Backup failed", e);
         }
     }
     
@@ -266,7 +282,7 @@ public class ShardedConfigManager {
                 if (Files.exists(shardConfigPath)) {
                     long lastModified = Files.getLastModifiedTime(shardConfigPath).toMillis();
                     if (lastModified > lastLoadTime) {
-                        System.out.println("[ShardedConfig] Detected external change, reloading...");
+                        Log.info("[ShardedConfig] Detected external change, reloading...");
                         loadConfig();
                     }
                 }
@@ -282,7 +298,7 @@ public class ShardedConfigManager {
     public void cleanup() {
         try {
             Files.deleteIfExists(shardConfigPath);
-            System.out.println("[ShardedConfig] Cleaned up shard: " + shardId);
+            Log.info("[ShardedConfig] Cleaned up shard: " + shardId);
             
             // Update global if this was the last session
             if (sessionManager.isOnlyActiveSession()) {
@@ -290,7 +306,7 @@ public class ShardedConfigManager {
             }
             
         } catch (Exception e) {
-            System.err.println("[ShardedConfig] Cleanup failed: " + e.getMessage());
+            Log.error("[ShardedConfig] Cleanup failed", e);
         }
     }
     
@@ -303,10 +319,10 @@ public class ShardedConfigManager {
             if (Files.exists(globalConfigPath)) {
                 loadFromFile(globalConfigPath);
                 saveConfig(); // Save to shard
-                System.out.println("[ShardedConfig] Imported from global config");
+                Log.info("[ShardedConfig] Imported from global config");
             }
         } catch (Exception e) {
-            System.err.println("[ShardedConfig] Import failed: " + e.getMessage());
+            Log.error("[ShardedConfig] Import failed", e);
         } finally {
             lock.writeLock().unlock();
         }
@@ -340,7 +356,7 @@ public class ShardedConfigManager {
             configCache.clear();
             loadDefaults();
             saveConfig();
-            System.out.println("[ShardedConfig] Reset to defaults");
+            Log.info("[ShardedConfig] Reset to defaults");
         } finally {
             lock.writeLock().unlock();
         }

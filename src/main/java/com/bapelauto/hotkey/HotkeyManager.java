@@ -15,6 +15,8 @@
 // ============================================
 package com.bapelauto.hotkey;
 
+import com.bapelauto.util.Log;
+
 import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
@@ -83,7 +85,7 @@ public class HotkeyManager {
         hotkeys.put(id, hotkey);
         keyToHotkeyId.put(keyCode, id);
 
-        System.out.println("[HotkeyManager] Registered: " + id + " -> " + getKeyName(keyCode));
+        Log.info("[HotkeyManager] Registered: " + id + " -> " + getKeyName(keyCode));
     }
 
     /**

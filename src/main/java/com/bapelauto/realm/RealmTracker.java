@@ -12,6 +12,8 @@
 // ============================================
 package com.bapelauto.realm;
 
+import com.bapelauto.util.Log;
+
 import com.bapelauto.SessionManager;
 import com.bapelauto.ShardedConfigManager;
 import net.minecraft.client.Minecraft;
@@ -72,16 +74,16 @@ public class RealmTracker {
         currentRealmName = realmName;
         lastRealmChangeTime = currentTime;
         
-        System.out.println("[RealmTracker] Joined: " + realmName);
+        Log.info("[RealmTracker] Joined: " + realmName);
         
         if (enableAutoLoad) {
             configManager.loadConfig();
-            System.out.println("[RealmTracker] Config loaded for realm: " + realmName);
+            Log.info("[RealmTracker] Config loaded for realm: " + realmName);
         }
     }
     
     private void handleDisconnect() {
-        System.out.println("[RealmTracker] Disconnected from: " + currentRealmName);
+        Log.info("[RealmTracker] Disconnected from: " + currentRealmName);
         configManager.saveConfig();
         
         isConnected = false;
@@ -90,7 +92,7 @@ public class RealmTracker {
     }
     
     private void handleRealmChange(String newRealm, long currentTime) {
-        System.out.println("[RealmTracker] Realm changed: " + currentRealmName + " -> " + newRealm);
+        Log.info("[RealmTracker] Realm changed: " + currentRealmName + " -> " + newRealm);
         
         configManager.saveConfig();
         currentRealmName = newRealm;

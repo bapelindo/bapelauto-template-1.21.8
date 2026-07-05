@@ -21,6 +21,8 @@
 // ============================================
 package com.bapelauto.slimefun;
 
+import com.bapelauto.util.Log;
+
 import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
@@ -163,7 +165,7 @@ public class SlimefunInputFeeder {
                     return true;
 
                 } catch (Exception e) {
-                    System.err.println("[InputFeeder] Error feeding item: " + e.getMessage());
+                    Log.error("[InputFeeder] Error feeding item", e);
                 }
             }
         }

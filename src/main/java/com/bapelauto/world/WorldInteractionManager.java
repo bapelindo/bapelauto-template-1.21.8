@@ -4,6 +4,8 @@
 // ============================================
 package com.bapelauto.world;
 
+import com.bapelauto.util.Log;
+
 import com.bapelauto.ShardedConfigManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
@@ -52,7 +54,7 @@ public class WorldInteractionManager {
             }
             totalClicks++;
         } catch (Exception e) {
-            System.err.println("[WorldManager] Left click error: " + e.getMessage());
+            Log.error("[WorldManager] Left click error", e);
         }
     }
     
@@ -72,7 +74,7 @@ public class WorldInteractionManager {
             }
             totalClicks++;
         } catch (Exception e) {
-            System.err.println("[WorldManager] Right click error: " + e.getMessage());
+            Log.error("[WorldManager] Right click error", e);
         }
     }
     

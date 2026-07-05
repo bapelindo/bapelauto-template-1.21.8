@@ -9,6 +9,8 @@
 // ============================================
 package com.bapelauto.slimefun;
 
+import com.bapelauto.util.Log;
+
 import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
@@ -301,7 +303,7 @@ public class RecipeFeeder {
                     return true;
                     
                 } catch (Exception e) {
-                    System.err.println("[RecipeFeeder] Error placing item: " + e.getMessage());
+                    Log.error("[RecipeFeeder] Error placing item", e);
                 }
             }
         }
@@ -418,7 +420,7 @@ public class RecipeFeeder {
         this.currentRecipe = recipe;
         
         if (recipe != null) {
-            System.out.println("[RecipeFeeder] Active recipe: " + recipe.getName());
+            Log.info("[RecipeFeeder] Active recipe: " + recipe.getName());
         }
     }
     

@@ -8,6 +8,8 @@
 // ============================================
 package com.bapelauto.profile;
 
+import com.bapelauto.util.Log;
+
 import com.bapelauto.util.ChatUtil;
 
 import com.bapelauto.ShardedConfigManager;
@@ -42,7 +44,7 @@ public class ProfileManager {
             loadActiveProfile();
             scanProfiles();
         } catch (Exception e) {
-            System.err.println("[ProfileManager] Init failed: " + e.getMessage());
+            Log.error("[ProfileManager] Init failed", e);
         }
     }
 
@@ -61,7 +63,7 @@ public class ProfileManager {
         try {
             Files.writeString(Paths.get(ACTIVE_PROFILE_FILE), currentProfile);
         } catch (IOException e) {
-            System.err.println("[ProfileManager] Failed to save active profile");
+            Log.error("[ProfileManager] Failed to save active profile");
         }
     }
 
@@ -76,9 +78,9 @@ public class ProfileManager {
 
             loadedProfiles.put(profileName, profile);
 
-            System.out.println("[ProfileManager] Saved profile: " + profileName);
+            Log.info("[ProfileManager] Saved profile: " + profileName);
         } catch (Exception e) {
-            System.err.println("[ProfileManager] Save failed: " + e.getMessage());
+            Log.error("[ProfileManager] Save failed", e);
         }
     }
 
@@ -110,7 +112,7 @@ public class ProfileManager {
 
             return true;
         } catch (Exception e) {
-            System.err.println("[ProfileManager] Load failed: " + e.getMessage());
+            Log.error("[ProfileManager] Load failed", e);
             return false;
         }
     }
@@ -125,7 +127,7 @@ public class ProfileManager {
                 ChatUtil.displayClientMessage(client, Component.literal("§e[Profile] Deleted: " + profileName), false);
             }
         } catch (Exception e) {
-            System.err.println("[ProfileManager] Delete failed: " + e.getMessage());
+            Log.error("[ProfileManager] Delete failed", e);
         }
     }
 
@@ -139,11 +141,11 @@ public class ProfileManager {
                           Profile profile = deserializeProfile(json);
                           loadedProfiles.put(profile.name, profile);
                       } catch (Exception e) {
-                          System.err.println("[ProfileManager] Failed to load: " + path.getFileName());
+                          Log.error("[ProfileManager] Failed to load: " + path.getFileName(), e);
                       }
                   });
         } catch (Exception e) {
-            System.err.println("[ProfileManager] Scan failed: " + e.getMessage());
+            Log.error("[ProfileManager] Scan failed", e);
         }
     }
 
