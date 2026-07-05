@@ -31,7 +31,10 @@ java {
 }
 
 jar {
+    // Gradle 9+ compatible property lookup
+    def archiveName = project.base.archivesName.get() 
+    
     from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}" }
+        rename { "${it}_${archiveName}" }
     }
 }
