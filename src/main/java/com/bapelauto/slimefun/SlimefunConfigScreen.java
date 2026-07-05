@@ -305,16 +305,16 @@ public class SlimefunConfigScreen extends Screen {
         recipeNameField = new EditBox(
             this.font, cx - 150, startY, 200, 20, Component.literal("Recipe Name")
         );
-        recipeNameField.setPlaceholder(Component.literal("Enter recipe name..."));
+        recipeNameField.setHint(Component.literal("Enter recipe name..."));
         this.addRenderableWidget(recipeNameField);
         
         this.addRenderableWidget(Button.builder(
             Component.literal("§aLearn"),
             b -> {
-                String name = recipeNameField.getText();
+                String name = recipeNameField.getValue();
                 if (name != null && !name.trim().isEmpty()) {
                     slimefunManager.learnRecipe(this.minecraft, name);
-                    recipeNameField.setText("");
+                    recipeNameField.setValue("");
                 } else {
                     if (this.minecraft != null && this.minecraft.player != null) {
                         ChatUtil.displayClientMessage(this.minecraft, 
@@ -348,14 +348,14 @@ public class SlimefunConfigScreen extends Screen {
         recipeSearchField = new EditBox(
             this.font, cx - 150, startY, 200, 20, Component.literal("Search")
         );
-        recipeSearchField.setPlaceholder(Component.literal("Search recipes..."));
-        recipeSearchField.setText(recipeSearchQuery);
+        recipeSearchField.setHint(Component.literal("Search recipes..."));
+        recipeSearchField.setValue(recipeSearchQuery);
         this.addRenderableWidget(recipeSearchField);
         
         this.addRenderableWidget(Button.builder(
             Component.literal("§b🔍"),
             b -> {
-                recipeSearchQuery = recipeSearchField.getText();
+                recipeSearchQuery = recipeSearchField.getValue();
                 recipeScrollOffset = 0;
                 this.clearWidgets();
                 this.init();
@@ -366,7 +366,7 @@ public class SlimefunConfigScreen extends Screen {
             Component.literal("§c✖"),
             b -> {
                 recipeSearchQuery = "";
-                recipeSearchField.setText("");
+                recipeSearchField.setValue("");
                 recipeScrollOffset = 0;
                 this.clearWidgets();
                 this.init();

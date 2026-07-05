@@ -153,7 +153,7 @@ public class SlimefunInputFeeder {
 
                     if (client.player != null) {
                         ChatUtil.displayClientMessage(client, 
-                            Component.literal("§a[Auto-Input] Fed " + stack.getItem().getName().getString() +
+                            Component.literal("§a[Auto-Input] Fed " + stack.getItem().getName(stack).getString() +
                                        " to " + machine.getDisplayName()),
                             true
                         );
@@ -177,7 +177,7 @@ public class SlimefunInputFeeder {
                                     List<String> requiredItems) {
         if (stack.isEmpty()) return false;
 
-        String itemName = stack.getItem().getName().getString().toLowerCase();
+        String itemName = stack.getItem().getName(stack).getString().toLowerCase();
         String itemId = stack.getItem().toString().toLowerCase();
 
         // If no specific requirements, accept any item

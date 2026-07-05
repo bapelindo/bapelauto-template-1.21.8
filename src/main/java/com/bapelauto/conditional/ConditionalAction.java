@@ -186,18 +186,18 @@ public class ConditionalAction {
     }
     
     private boolean isInventoryFull(Player player) {
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            ItemStack stack = player.getInventory().getStack(i);
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
             if (stack.isEmpty()) {
                 return false;
             }
         }
         return true;
     }
-    
+
     private boolean isInventoryEmpty(Player player) {
-        for (int i = 0; i < player.getInventory().size(); i++) {
-            ItemStack stack = player.getInventory().getStack(i);
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
             if (!stack.isEmpty()) {
                 return false;
             }

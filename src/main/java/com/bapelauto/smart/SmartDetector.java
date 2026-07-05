@@ -51,7 +51,7 @@ public class SmartDetector {
     public static GuiType detectGuiType(Screen screen) {
         if (screen == null) return GuiType.UNKNOWN;
         
-        if (screen instanceof GenericContainerScreen) {
+        if (screen instanceof ContainerScreen) {
             return GuiType.CHEST;
         } else if (screen instanceof FurnaceScreen) {
             return GuiType.FURNACE;
@@ -112,7 +112,7 @@ public class SmartDetector {
                 Component.literal("§a[Smart Detect] Found " + targets.size() + " targets in " + guiType.getDisplayName()),
                 true
             );
-            client.player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5F, 1.5F);
+            client.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.5F, 1.5F);
         }
         
         return targets;

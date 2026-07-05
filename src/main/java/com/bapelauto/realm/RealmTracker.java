@@ -101,8 +101,8 @@ public class RealmTracker {
     }
     
     private String getRealmName(Minecraft client) {
-        if (client.level != null && client.level.getRegistryKey() != null) {
-            String fullPath = client.level.getRegistryKey().getValue().getPath();
+        if (client.level != null && client.level.dimension() != null) {
+            String fullPath = client.level.dimension().location().getPath();
             if (fullPath.contains(":")) {
                 String[] parts = fullPath.split(":");
                 return parts[parts.length - 1];

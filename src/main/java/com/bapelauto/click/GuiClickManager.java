@@ -59,8 +59,8 @@ public class GuiClickManager {
 
         // Fall back to point capture
         if (newTarget == null) {
-            double mouseX = client.mouseHandler.xpos() * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();
-            double mouseY = client.mouseHandler.ypos() * (double)client.getWindow().getScaledHeight() / (double)client.getWindow().getHeight();
+            double mouseX = client.mouseHandler.xpos() * (double)client.getWindow().getGuiScaledWidth() / (double)client.getWindow().getWidth();
+            double mouseY = client.mouseHandler.ypos() * (double)client.getWindow().getGuiScaledHeight() / (double)client.getWindow().getHeight();
             newTarget = new ClickTarget(mouseX, mouseY, defaultDelay);
             if (client.player != null) {
                 ChatUtil.displayClientMessage(client, Component.literal("§e[Capture] Point: " + (int)mouseX + ", " + (int)mouseY), true);

@@ -113,7 +113,7 @@ public class RecipeFeeder {
             if (stack.isEmpty()) return false;
             if (stack.getCount() < requiredCount) return false;
             
-            String itemName = stack.getItem().getName().getString().toLowerCase();
+            String itemName = stack.getItem().getName(stack).getString().toLowerCase();
             String itemId = stack.getItem().toString().toLowerCase();
             
             for (String accepted : acceptedItems) {
@@ -128,7 +128,7 @@ public class RecipeFeeder {
         public boolean matchesPartial(ItemStack stack) {
             if (stack.isEmpty()) return false;
             
-            String itemName = stack.getItem().getName().getString().toLowerCase();
+            String itemName = stack.getItem().getName(stack).getString().toLowerCase();
             String itemId = stack.getItem().toString().toLowerCase();
             
             for (String accepted : acceptedItems) {
@@ -291,7 +291,7 @@ public class RecipeFeeder {
                     
                     if (client.player != null) {
                         ChatUtil.displayClientMessage(client, 
-                            Component.literal("§a[Recipe] Placed " + stack.getItem().getName().getString() + 
+                            Component.literal("§a[Recipe] Placed " + stack.getItem().getName(stack).getString() + 
                                        " in slot " + targetSlot),
                             true
                         );
