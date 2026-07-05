@@ -4,6 +4,7 @@
 // ============================================
 package com.bapelauto.world;
 
+import com.bapelauto.util.Cooldown;
 import com.bapelauto.util.Log;
 
 import com.bapelauto.ShardedConfigManager;
@@ -16,28 +17,24 @@ import net.minecraft.world.phys.HitResult;
 public class WorldInteractionManager {
     private boolean leftClickEnabled = false;
     private boolean rightClickEnabled = false;
-    
+
     private long leftClickDelay = 200;
     private long rightClickDelay = 200;
-    
-    private long lastLeftClickTime = 0;
-    private long lastRightClickTime = 0;
-    
+
+    private final Cooldown leftClickCooldown = new Cooldown();
+    private final Cooldown rightClickCooldown = new Cooldown();
+
     private int totalClicks = 0;
-    
+
     public void tick(Minecraft client) {
         if (client.player == null || client.level == null) return;
-        
-        long currentTime = System.currentTimeMillis();
-        
-        if (leftClickEnabled && (currentTime - lastLeftClickTime) >= leftClickDelay) {
+
+        if (leftClickEnabled && leftClickCooldown.tryConsume(leftClickDelay)) {
             performLeftClick(client);
-            lastLeftClickTime = currentTime;
         }
-        
-        if (rightClickEnabled && (currentTime - lastRightClickTime) >= rightClickDelay) {
+
+        if (rightClickEnabled && rightClickCooldown.tryConsume(rightClickDelay)) {
             performRightClick(client);
-            lastRightClickTime = currentTime;
         }
     }
     

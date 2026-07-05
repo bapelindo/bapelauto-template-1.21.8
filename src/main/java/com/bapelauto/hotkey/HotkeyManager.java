@@ -18,6 +18,7 @@ package com.bapelauto.hotkey;
 import com.bapelauto.util.Log;
 
 import com.bapelauto.util.ChatUtil;
+import com.bapelauto.util.Cooldown;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.KeyMapping;
@@ -157,7 +158,7 @@ public class HotkeyManager {
         private final HotkeyAction action;
         private final String actionData;
         private boolean enabled = true;
-        private long lastExecutionTime = 0;
+        private final Cooldown executionCooldown = new Cooldown();
         private long cooldown = 500; // 500ms cooldown
 
         public CustomHotkey(String id, int keyCode, HotkeyAction action, String actionData) {
@@ -168,12 +169,9 @@ public class HotkeyManager {
         }
 
         public boolean execute(Minecraft client) {
-            long currentTime = System.currentTimeMillis();
-            if (currentTime - lastExecutionTime < cooldown) {
+            if (!executionCooldown.tryConsume(cooldown)) {
                 return false;
             }
-
-            lastExecutionTime = currentTime;
 
             if (client.player == null) return false;
 

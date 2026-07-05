@@ -10,6 +10,7 @@
 package com.bapelauto.click;
 
 import com.bapelauto.util.ChatUtil;
+import com.bapelauto.util.Cooldown;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -31,7 +32,7 @@ public class GuiClickManager {
     
     private boolean isActive = false;
     private int currentTargetIndex = 0;
-    private long lastClickTime = 0;
+    private final Cooldown clickCooldown = new Cooldown();
     
     // Timing settings
     private long baseDelay = 100;
@@ -131,7 +132,7 @@ public class GuiClickManager {
         if (isActive) {
             currentTargetIndex = 0;
             currentBurstCounter = 0;
-            lastClickTime = System.currentTimeMillis();
+            clickCooldown.trigger();
         }
         
         if (client.player != null) {
@@ -146,17 +147,16 @@ public class GuiClickManager {
         if (!isActive || capturedTargets.isEmpty()) return;
         if (client.screen == null) return;
         
-        long currentTime = System.currentTimeMillis();
         long effectiveDelay = timingPattern.calculateDelay(
-            baseDelay, minDelay, maxDelay, 
+            baseDelay, minDelay, maxDelay,
             currentTargetIndex, burstCount, burstPause, currentBurstCounter
         );
-        
-        if ((currentTime - lastClickTime) >= effectiveDelay) {
+
+        if (clickCooldown.isReady(effectiveDelay)) {
             ClickTarget target = capturedTargets.get(currentTargetIndex);
-            
+
             if (clickExecutor.executeClick(client, target)) {
-                lastClickTime = currentTime;
+                clickCooldown.trigger();
                 
                 // Update burst counter
                 if (timingPattern == TimingPattern.BURST) {

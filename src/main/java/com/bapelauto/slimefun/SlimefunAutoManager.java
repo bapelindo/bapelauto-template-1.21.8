@@ -5,6 +5,7 @@
 package com.bapelauto.slimefun;
 
 import com.bapelauto.util.ChatUtil;
+import com.bapelauto.util.Cooldown;
 
 import com.bapelauto.AutoBotMod;
 import com.bapelauto.click.ClickTarget;
@@ -26,7 +27,7 @@ public class SlimefunAutoManager {
     
     private boolean slimefunModeEnabled = false;
     private SlimefunDetector.SlimefunMachine currentMachine = SlimefunDetector.SlimefunMachine.UNKNOWN;
-    private long lastAutoDetectTime = 0;
+    private final Cooldown autoDetectCooldown = new Cooldown();
     private static final long AUTO_DETECT_COOLDOWN = 2000;
     
     // NEW: Input Feeder System
@@ -62,10 +63,8 @@ public class SlimefunAutoManager {
         if (client.screen == null) return;
         
         // Auto-detect Slimefun machines periodically
-        long currentTime = System.currentTimeMillis();
-        if (currentTime - lastAutoDetectTime > AUTO_DETECT_COOLDOWN) {
+        if (autoDetectCooldown.tryConsume(AUTO_DETECT_COOLDOWN)) {
             autoDetectAndConfigure(client);
-            lastAutoDetectTime = currentTime;
         }
         
         // Safety check

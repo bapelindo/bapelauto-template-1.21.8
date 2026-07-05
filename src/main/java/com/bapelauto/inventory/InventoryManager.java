@@ -14,6 +14,7 @@
 // ============================================
 package com.bapelauto.inventory;
 
+import com.bapelauto.util.Cooldown;
 import com.bapelauto.util.Log;
 
 import com.bapelauto.ShardedConfigManager;
@@ -34,7 +35,7 @@ public class InventoryManager {
     private boolean autoStoreEnabled = false;
 
     private long inventoryDelay = 150;
-    private long lastActionTime = 0;
+    private final Cooldown actionCooldown = new Cooldown();
     private int nextStealSlotId = 0;
     private int totalItemsMoved = 0;
 
@@ -46,9 +47,7 @@ public class InventoryManager {
     public void tick(Minecraft client, AbstractContainerScreen<?> screen) {
         if (!autoStealEnabled && !autoStoreEnabled) return;
         if (client.gameMode == null || client.player == null) return;
-
-        long currentTime = System.currentTimeMillis();
-        if ((currentTime - lastActionTime) < inventoryDelay) return;
+        if (!actionCooldown.isReady(inventoryDelay)) return;
 
         try {
             AbstractContainerMenu handler = screen.getMenu();
@@ -68,7 +67,7 @@ public class InventoryManager {
                         client.gameMode.handleContainerInput(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
                         totalItemsMoved++;
                         nextStealSlotId = i + 1;
-                        lastActionTime = currentTime;
+                        actionCooldown.trigger();
                         return;
                     }
                 }
@@ -84,7 +83,7 @@ public class InventoryManager {
                     if (slot.hasItem() && !isProtected(slot.getItem())) {
                         client.gameMode.handleContainerInput(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
                         totalItemsMoved++;
-                        lastActionTime = currentTime;
+                        actionCooldown.trigger();
                         return;
                     }
                 }
