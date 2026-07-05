@@ -4,6 +4,8 @@
 // ============================================
 package com.bapelauto.click;
 
+import com.bapelauto.util.ChatUtil;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -19,7 +21,7 @@ public class MacroRecorder {
     public void startRecording(Minecraft client) {
         if (isRecording) {
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§c[Recording] Already recording!"), false);
+                ChatUtil.displayClientMessage(client, Component.literal("§c[Recording] Already recording!"), false);
             }
             return;
         }
@@ -29,7 +31,7 @@ public class MacroRecorder {
         recordedActions.clear();
         
         if (client.player != null) {
-            client.player.displayClientMessage(Component.literal("§a§l[Recording] STARTED - Capture points with [-], stop with []]"), true);
+            ChatUtil.displayClientMessage(client, Component.literal("§a§l[Recording] STARTED - Capture points with [-], stop with []]"), true);
             client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 2.0F);
         }
     }
@@ -37,7 +39,7 @@ public class MacroRecorder {
     public void stopRecording(Minecraft client) {
         if (!isRecording) {
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§c[Recording] Not recording!"), false);
+                ChatUtil.displayClientMessage(client, Component.literal("§c[Recording] Not recording!"), false);
             }
             return;
         }
@@ -46,13 +48,13 @@ public class MacroRecorder {
         
         if (recordedActions.isEmpty()) {
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§c[Recording] No actions recorded!"), false);
+                ChatUtil.displayClientMessage(client, Component.literal("§c[Recording] No actions recorded!"), false);
             }
             return;
         }
         
         if (client.player != null) {
-            client.player.displayClientMessage(Component.literal("§a§l[Recording] STOPPED - " + recordedActions.size() + " actions saved"), true);
+            ChatUtil.displayClientMessage(client, Component.literal("§a§l[Recording] STOPPED - " + recordedActions.size() + " actions saved"), true);
             client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.5F);
         }
     }

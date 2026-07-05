@@ -9,6 +9,8 @@
 // ============================================
 package com.bapelauto.click;
 
+import com.bapelauto.util.ChatUtil;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.Slot;
@@ -50,18 +52,18 @@ public class GuiClickManager {
             if (slot != null) {
                 newTarget = new ClickTarget(slot.index, defaultDelay);
                 if (client.player != null) {
-                    client.player.displayClientMessage(Component.literal("§e[Capture] Slot: " + slot.index), true);
+                    ChatUtil.displayClientMessage(client, Component.literal("§e[Capture] Slot: " + slot.index), true);
                 }
             }
         }
 
         // Fall back to point capture
         if (newTarget == null) {
-            double mouseX = client.mouseHandler.xpos() * (double)client.getWindow().getScaledWidth() / (double)client.getWindow().getWidth();
-            double mouseY = client.mouseHandler.ypos() * (double)client.getWindow().getScaledHeight() / (double)client.getWindow().getHeight();
+            double mouseX = client.mouseHandler.xpos() * (double)client.getWindow().getGuiScaledWidth() / (double)client.getWindow().getWidth();
+            double mouseY = client.mouseHandler.ypos() * (double)client.getWindow().getGuiScaledHeight() / (double)client.getWindow().getHeight();
             newTarget = new ClickTarget(mouseX, mouseY, defaultDelay);
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§e[Capture] Point: " + (int)mouseX + ", " + (int)mouseY), true);
+                ChatUtil.displayClientMessage(client, Component.literal("§e[Capture] Point: " + (int)mouseX + ", " + (int)mouseY), true);
             }
         }
         
@@ -69,7 +71,7 @@ public class GuiClickManager {
         if (macroRecorder.isRecording()) {
             macroRecorder.recordAction(newTarget);
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§a[Recording] Step " + macroRecorder.getActionCount()), true);
+                ChatUtil.displayClientMessage(client, Component.literal("§a[Recording] Step " + macroRecorder.getActionCount()), true);
             }
         } else {
             // Normal capture mode
@@ -77,7 +79,7 @@ public class GuiClickManager {
             updateMode();
             
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§6[Capture] Total: " + capturedTargets.size()), true);
+                ChatUtil.displayClientMessage(client, Component.literal("§6[Capture] Total: " + capturedTargets.size()), true);
                 client.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
             }
         }
@@ -110,7 +112,7 @@ public class GuiClickManager {
             isActive = false;
             
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§e[Macro] Ready to replay - Press [=] to start"), true);
+                ChatUtil.displayClientMessage(client, Component.literal("§e[Macro] Ready to replay - Press [=] to start"), true);
             }
         }
     }
@@ -118,7 +120,7 @@ public class GuiClickManager {
     public void toggle(Minecraft client) {
         if (capturedTargets.isEmpty()) {
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§c[Click] No targets! Press [-] to capture"), false);
+                ChatUtil.displayClientMessage(client, Component.literal("§c[Click] No targets! Press [-] to capture"), false);
             }
             isActive = false;
             return;
@@ -136,7 +138,7 @@ public class GuiClickManager {
             String status = isActive ? "§a§lACTIVE" : "§cPAUSED";
             String mode = " [" + currentMode.getDisplayName() + "]";
             String pattern = " {" + timingPattern.getDisplayName() + "}";
-            client.player.displayClientMessage(Component.literal("§6[Click] " + status + mode + pattern), true);
+            ChatUtil.displayClientMessage(client, Component.literal("§6[Click] " + status + mode + pattern), true);
         }
     }
     

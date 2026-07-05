@@ -1,7 +1,3 @@
-// ============================================
-// FILE: InventoryScreenMixin.java (FIXED)
-// Path: src/main/java/com/bapelauto/mixin/InventoryScreenMixin.java
-// ============================================
 package com.bapelauto.mixin;
 
 import com.bapelauto.AutoBotMod;
@@ -19,10 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(AbstractContainerScreen.class)
 public abstract class InventoryScreenMixin extends Screen {
 
-    @Shadow protected int x; 
-    @Shadow protected int y; 
-    @Shadow protected int backgroundWidth; 
-    @Shadow protected int backgroundHeight;
+    @Shadow protected int leftPos;        // Menggantikan x
+    @Shadow protected int topPos;         // Menggantikan y
+    @Shadow protected int imageWidth;     // Menggantikan backgroundWidth
+    @Shadow protected int imageHeight;    // Menggantikan backgroundHeight
     
     protected InventoryScreenMixin(Component title) {
         super(title);
@@ -30,13 +26,13 @@ public abstract class InventoryScreenMixin extends Screen {
 
     @Inject(at = @At("TAIL"), method = "init()V") 
     private void bapelauto_injectButtons(CallbackInfo ci) {
-        // Check if GUI buttons should be shown
         if (!AutoBotMod.isShowGuiButtons()) return;
         
         if (this.minecraft == null || this.minecraft.player == null) return;
         
-        int xPos = this.x + this.backgroundWidth + 5; 
-        int yPos = this.y + 5;
+        // Menggunakan nama field Mojang Mappings yang baru
+        int xPos = this.leftPos + this.imageWidth + 5; 
+        int yPos = this.topPos + 5;
 
         this.addRenderableWidget(Button.builder(Component.literal("§aSteal"), b -> {
             InventoryManager.performSingleSteal(this.minecraft);

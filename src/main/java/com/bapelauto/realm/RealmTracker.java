@@ -1,6 +1,14 @@
 // ============================================
 // FILE: RealmTracker.java
 // Path: src/main/java/com/bapelauto/realm/RealmTracker.java
+//
+// Ported to Minecraft 26.1.2 / Fabric (official Mojang mappings).
+//   - ServerData.address -> ServerData.ip
+//   - ClientLevel.getRegistryKey() -> dimension()
+//   - ResourceKey.location() -> identifier() (ResourceLocation was renamed
+//     to Identifier in this build - confirmed already working elsewhere,
+//     e.g. AutoBotMod.java's Identifier.fromNamespaceAndPath - so the
+//     accessor name change follows the same rename)
 // ============================================
 package com.bapelauto.realm;
 
@@ -95,14 +103,14 @@ public class RealmTracker {
     
     private String getServerAddress(Minecraft client) {
         if (client.getCurrentServer() != null) {
-            return client.getCurrentServer().address;
+            return client.getCurrentServer().ip;
         }
         return "";
     }
     
     private String getRealmName(Minecraft client) {
-        if (client.level != null && client.level.getRegistryKey() != null) {
-            String fullPath = client.level.getRegistryKey().getValue().getPath();
+        if (client.level != null && client.level.dimension() != null) {
+            String fullPath = client.level.dimension().identifier().getPath();
             if (fullPath.contains(":")) {
                 String[] parts = fullPath.split(":");
                 return parts[parts.length - 1];

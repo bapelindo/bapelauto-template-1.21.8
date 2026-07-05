@@ -1,8 +1,15 @@
 // ============================================
 // FILE: RecipeFeeder.java
 // Path: src/main/java/com/bapelauto/slimefun/RecipeFeeder.java
+//
+// ClickType was renamed to ContainerInput, and
+// handleInventoryMouseClick(...) was renamed to handleContainerInput(...)
+// (confirmed via real Minecraft source); see click/ClickExecutor.java for
+// details.
 // ============================================
 package com.bapelauto.slimefun;
+
+import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -10,7 +17,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -107,7 +114,7 @@ public class RecipeFeeder {
             if (stack.isEmpty()) return false;
             if (stack.getCount() < requiredCount) return false;
             
-            String itemName = stack.getItem().getName().getString().toLowerCase();
+            String itemName = stack.getItem().getName(stack).getString().toLowerCase();
             String itemId = stack.getItem().toString().toLowerCase();
             
             for (String accepted : acceptedItems) {
@@ -122,7 +129,7 @@ public class RecipeFeeder {
         public boolean matchesPartial(ItemStack stack) {
             if (stack.isEmpty()) return false;
             
-            String itemName = stack.getItem().getName().getString().toLowerCase();
+            String itemName = stack.getItem().getName(stack).getString().toLowerCase();
             String itemId = stack.getItem().toString().toLowerCase();
             
             for (String accepted : acceptedItems) {
@@ -214,7 +221,7 @@ public class RecipeFeeder {
         
         // If we get here, we couldn't feed any items (probably missing from inventory)
         if (autoDetectMode && client.player != null) {
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§c[Recipe Feeder] Missing required items for recipe!"),
                 true
             );
@@ -247,14 +254,14 @@ public class RecipeFeeder {
                     // Pick up items from player inventory
                     if (toTake == stack.getCount()) {
                         // Take all
-                        client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, i, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleContainerInput(
+                            handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     } else {
                         // Take partial (right-click to take half, or shift-click logic)
                         // For simplicity, take all and put back extra
-                        client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, i, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleContainerInput(
+                            handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     }
                     
@@ -264,28 +271,28 @@ public class RecipeFeeder {
                     
                     if (recipeSlot.getItem().isEmpty()) {
                         // Slot is empty, place item
-                        client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, targetSlot, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleContainerInput(
+                            handler.containerId, targetSlot, 0, ContainerInput.PICKUP, client.player
                         );
                     } else {
                         // Slot has items, add to stack
-                        client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, targetSlot, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleContainerInput(
+                            handler.containerId, targetSlot, 0, ContainerInput.PICKUP, client.player
                         );
                     }
                     
                     // Put back any remaining items
                     if (!client.player.containerMenu.getCarried().isEmpty()) {
-                        client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, i, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleContainerInput(
+                            handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     }
                     
                     totalItemsPlaced++;
                     
                     if (client.player != null) {
-                        client.player.displayClientMessage(
-                            Component.literal("§a[Recipe] Placed " + stack.getItem().getName().getString() + 
+                        ChatUtil.displayClientMessage(client, 
+                            Component.literal("§a[Recipe] Placed " + stack.getItem().getName(stack).getString() + 
                                        " in slot " + targetSlot),
                             true
                         );
@@ -332,7 +339,7 @@ public class RecipeFeeder {
         
         if (learned.isEmpty()) {
             if (client.player != null) {
-                client.player.displayClientMessage(
+                ChatUtil.displayClientMessage(client, 
                     Component.literal("§c[Recipe] No items in crafting grid to learn!"),
                     false
                 );
@@ -346,7 +353,7 @@ public class RecipeFeeder {
         Recipe recipe = new Recipe(recipeName, learned, outputSlot);
         
         if (client.player != null) {
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§a[Recipe] Learned recipe: " + recipeName + " (" + learned.size() + " ingredients)"),
                 true
             );

@@ -11,16 +11,24 @@
 //   - handler.containerId -> handler.containerId
 //   - client.player.containerMenu -> client.player.containerMenu
 //   - .getCarried() -> .getCarried()
-//   - player.sendMessage(...) -> player.displayClientMessage(...)
+//   - player.sendMessage(...) -> ChatUtil.displayClientMessage(...)
+//     (LocalPlayer no longer has any send/display-message method at all;
+//     see util/ChatUtil.java for the real replacement and its caveats)
+//   - ClickType was renamed to ContainerInput, and
+//     handleInventoryMouseClick(...) was renamed to handleContainerInput(...)
+//     (confirmed via real Minecraft source); see click/ClickExecutor.java
+//     for details.
 // ============================================
 package com.bapelauto.slimefun;
+
+import com.bapelauto.util.ChatUtil;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.network.chat.Component;
 
 import java.util.*;
@@ -126,27 +134,27 @@ public class SlimefunInputFeeder {
                 // Move item to input slot
                 try {
                     // Pick up item from player inventory
-                    client.gameMode.handleInventoryMouseClick(
-                        handler.containerId, i, 0, ClickType.PICKUP, client.player
+                    client.gameMode.handleContainerInput(
+                        handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                     );
 
                     // Place in machine input slot
-                    client.gameMode.handleInventoryMouseClick(
-                        handler.containerId, targetSlot, 0, ClickType.PICKUP, client.player
+                    client.gameMode.handleContainerInput(
+                        handler.containerId, targetSlot, 0, ContainerInput.PICKUP, client.player
                     );
 
                     // If still holding items, put them back
                     if (!client.player.containerMenu.getCarried().isEmpty()) {
-                        client.gameMode.handleInventoryMouseClick(
-                            handler.containerId, i, 0, ClickType.PICKUP, client.player
+                        client.gameMode.handleContainerInput(
+                            handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     }
 
                     totalItemsFed++;
 
                     if (client.player != null) {
-                        client.player.displayClientMessage(
-                            Component.literal("§a[Auto-Input] Fed " + stack.getItem().getName().getString() +
+                        ChatUtil.displayClientMessage(client, 
+                            Component.literal("§a[Auto-Input] Fed " + stack.getItem().getName(stack).getString() +
                                        " to " + machine.getDisplayName()),
                             true
                         );
@@ -170,7 +178,7 @@ public class SlimefunInputFeeder {
                                     List<String> requiredItems) {
         if (stack.isEmpty()) return false;
 
-        String itemName = stack.getItem().getName().getString().toLowerCase();
+        String itemName = stack.getItem().getName(stack).getString().toLowerCase();
         String itemId = stack.getItem().toString().toLowerCase();
 
         // If no specific requirements, accept any item
@@ -196,7 +204,7 @@ public class SlimefunInputFeeder {
 
         if (!INPUT_SLOTS.containsKey(machine)) {
             if (client.player != null) {
-                client.player.displayClientMessage(
+                ChatUtil.displayClientMessage(client, 
                     Component.literal("§c[Auto-Input] Machine type not supported: " + machine.getDisplayName()),
                     false
                 );
@@ -205,14 +213,14 @@ public class SlimefunInputFeeder {
         }
 
         if (client.player != null) {
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§a[Auto-Input] Configured for " + machine.getDisplayName()),
                 true
             );
 
             List<String> items = REQUIRED_ITEMS.get(machine);
             if (items != null && !items.isEmpty()) {
-                client.player.displayClientMessage(
+                ChatUtil.displayClientMessage(client, 
                     Component.literal("§7Required items: §f" + String.join(", ", items)),
                     false
                 );

@@ -13,6 +13,8 @@
 // ============================================
 package com.bapelauto;
 
+import com.bapelauto.util.ChatUtil;
+
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.components.Button;
@@ -65,7 +67,7 @@ public class SessionDebugScreen extends Screen {
         // Force cleanup button
         this.addRenderableWidget(Button.builder(Component.literal("§e🧹 Cleanup"), b -> {
             if (this.minecraft != null && this.minecraft.player != null) {
-                this.minecraft.player.displayClientMessage(Component.literal("§e[Session] Running cleanup..."), false);
+                ChatUtil.displayClientMessage(this.minecraft, Component.literal("§e[Session] Running cleanup..."), false);
             }
             refreshSessions();
         }).bounds(cx - 100, btnY - 30, 90, 20).build());
@@ -74,7 +76,7 @@ public class SessionDebugScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.literal("§b📤 Export"), b -> {
             configManager.exportToGlobal();
             if (this.minecraft != null && this.minecraft.player != null) {
-                this.minecraft.player.displayClientMessage(Component.literal("§a[Config] Exported to global"), false);
+                ChatUtil.displayClientMessage(this.minecraft, Component.literal("§a[Config] Exported to global"), false);
             }
         }).bounds(cx + 10, btnY - 30, 90, 20).build());
     }

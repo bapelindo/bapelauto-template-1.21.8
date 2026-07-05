@@ -4,6 +4,8 @@
 // ============================================
 package com.bapelauto.smart;
 
+import com.bapelauto.util.ChatUtil;
+
 import com.bapelauto.click.ClickTarget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -49,7 +51,7 @@ public class SmartDetector {
     public static GuiType detectGuiType(Screen screen) {
         if (screen == null) return GuiType.UNKNOWN;
         
-        if (screen instanceof GenericContainerScreen) {
+        if (screen instanceof ContainerScreen) {
             return GuiType.CHEST;
         } else if (screen instanceof FurnaceScreen) {
             return GuiType.FURNACE;
@@ -106,11 +108,11 @@ public class SmartDetector {
         }
         
         if (client.player != null && !targets.isEmpty()) {
-            client.player.displayClientMessage(
+            ChatUtil.displayClientMessage(client, 
                 Component.literal("§a[Smart Detect] Found " + targets.size() + " targets in " + guiType.getDisplayName()),
                 true
             );
-            client.player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5F, 1.5F);
+            client.player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.5F, 1.5F);
         }
         
         return targets;
@@ -235,15 +237,15 @@ public class SmartDetector {
         String pattern = suggestTimingPattern(guiType);
         long[] delays = suggestDelays(guiType);
         
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§e[Smart Config] Recommended settings for " + guiType.getDisplayName()),
             false
         );
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§7Pattern: §f" + pattern + " §7| Delay: §f" + delays[0] + "ms"),
             false
         );
-        client.player.displayClientMessage(
+        ChatUtil.displayClientMessage(client, 
             Component.literal("§7Suggestion: §f" + guiType.getSuggestion()),
             false
         );

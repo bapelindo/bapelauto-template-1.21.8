@@ -19,8 +19,19 @@
 //     key()/scancode() accessors matching KeyEvent's record shape, so it is
 //     passed straight through instead of unpacking it into two ints.
 //   - player.sendMessage(Component, boolean) -> displayClientMessage(...)
+//     (WRONG - see round 3; that name doesn't exist either)
 //   - SoundEvents.BLOCK_NOTE_BLOCK_PLING/BLOCK_NOTE_BLOCK_BASS/BLOCK_ANVIL_LAND
 //     -> NOTE_BLOCK_PLING/NOTE_BLOCK_BASS/ANVIL_LAND (no BLOCK_ prefix)
+//
+// Round 3 (real compiler output against the actual 26.1 jar):
+//   - LocalPlayer.displayClientMessage(Component, boolean) also does not
+//     exist (confirmed: "cannot find symbol" with zero candidates, so the
+//     method isn't on LocalPlayer under any name/signature). Replaced with
+//     ChatUtil.displayClientMessage(client, message, actionBar), which goes
+//     through Minecraft.gui directly - see util/ChatUtil.java for the exact
+//     mechanism and its UNVERIFIED caveat.
+//   - KeyMapping.wasPressed() -> KeyMapping.consumeClick() (long-standing
+//     Mojang mapping name, unrelated to the 26.1 KeyEvent rework).
 //
 // NOTE: this port targets Minecraft 26.1.2, which is beyond the
 // assistant's training data. Fixes above are backed by the actual
@@ -28,6 +39,8 @@
 // was deliberately left alone rather than guessed at.
 // ============================================
 package com.bapelauto;
+
+import com.bapelauto.util.ChatUtil;
 
 import com.bapelauto.click.*;
 import com.bapelauto.world.WorldInteractionManager;
@@ -301,22 +314,22 @@ public class AutoBotMod implements ClientModInitializer {
         if (client.player == null) return;
 
         // Key checks
-        if (toggleBotKey.wasPressed()) toggleMaster(client);
-        if (openConfigKey.wasPressed()) client.setScreen(new AutoBotConfigScreen(client.screen));
-        if (openSlimefunConfigKey.wasPressed()) client.setScreen(new SlimefunConfigScreen(client.screen));
+        if (toggleBotKey.consumeClick()) toggleMaster(client);
+        if (openConfigKey.consumeClick()) client.setScreen(new AutoBotConfigScreen(client.screen));
+        if (openSlimefunConfigKey.consumeClick()) client.setScreen(new SlimefunConfigScreen(client.screen));
 
-        if (smartDetectKey.wasPressed() && client.screen != null) performSmartDetect(client);
-        if (slimefunQuickSetupKey.wasPressed() && client.screen != null) performSlimefunQuickSetup(client);
+        if (smartDetectKey.consumeClick() && client.screen != null) performSmartDetect(client);
+        if (slimefunQuickSetupKey.consumeClick() && client.screen != null) performSlimefunQuickSetup(client);
 
-        if (cycleProfileKey.wasPressed() && profileManager != null) profileManager.cycleProfile(client);
+        if (cycleProfileKey.consumeClick() && profileManager != null) profileManager.cycleProfile(client);
 
-        if (toggleOverlayKey.wasPressed() && visualOverlay != null) {
+        if (toggleOverlayKey.consumeClick() && visualOverlay != null) {
             visualOverlay.toggleAll();
             String status = visualOverlay.isEnabled() ? "§aON" : "§cOFF";
-            client.player.displayClientMessage(Component.literal("§e[Overlay] " + status), true);
+            ChatUtil.displayClientMessage(client, Component.literal("§e[Overlay] " + status), true);
         }
 
-        if (emergencyStopKey.wasPressed()) performEmergencyStop(client);
+        if (emergencyStopKey.consumeClick()) performEmergencyStop(client);
 
         if (botRunning) executeBot(client);
     }
@@ -329,9 +342,9 @@ public class AutoBotMod implements ClientModInitializer {
             lastCommandTime = System.currentTimeMillis();
 
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§a§l[AutoBot] MASTER ON"), true);
+                ChatUtil.displayClientMessage(client, Component.literal("§a§l[AutoBot] MASTER ON"), true);
                 if (slimefunManager != null && slimefunManager.isInSlimefunGUI(client)) {
-                    client.player.displayClientMessage(Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
+                    ChatUtil.displayClientMessage(client, Component.literal("§e[Tip] Press Slimefun quick setup key!"), false);
                 }
                 client.player.playSound(SoundEvents.NOTE_BLOCK_PLING.value(), 1.0F, 1.0F);
             }
@@ -343,7 +356,7 @@ public class AutoBotMod implements ClientModInitializer {
             commandEnabled = false;
 
             if (client.player != null) {
-                client.player.displayClientMessage(Component.literal("§c§l[AutoBot] MASTER OFF"), true);
+                ChatUtil.displayClientMessage(client, Component.literal("§c§l[AutoBot] MASTER OFF"), true);
                 client.player.playSound(SoundEvents.NOTE_BLOCK_BASS.value(), 1.0F, 1.0F);
             }
         }
@@ -426,7 +439,7 @@ public class AutoBotMod implements ClientModInitializer {
     private void performSlimefunQuickSetup(Minecraft client) {
         if (client.screen == null || slimefunManager == null) return;
         if (!SlimefunDetector.isSlimefunGUI(client.screen)) {
-            if (client.player != null) client.player.displayClientMessage(Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
+            if (client.player != null) ChatUtil.displayClientMessage(client, Component.literal("§c[Slimefun] Not a Slimefun machine GUI"), false);
             return;
         }
         slimefunManager.quickSetup(client);
@@ -442,7 +455,7 @@ public class AutoBotMod implements ClientModInitializer {
         if (slimefunManager != null) slimefunManager.setSlimefunModeEnabled(false);
 
         if (client.player != null) {
-            client.player.displayClientMessage(Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
+            ChatUtil.displayClientMessage(client, Component.literal("§c§l[EMERGENCY] ALL SYSTEMS DISABLED!"), true);
             client.player.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F);
         }
     }
