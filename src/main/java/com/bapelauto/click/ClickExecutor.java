@@ -8,6 +8,11 @@
 // unqualified with no import). Same constant names (PICKUP, QUICK_MOVE,
 // SWAP, CLONE, THROW, PICKUP_ALL, QUICK_CRAFT).
 //
+// CONFIRMED (real MultiPlayerGameMode source pasted by the user):
+// handleInventoryMouseClick(...) was renamed to handleContainerInput(int
+// containerId, int slotNum, int buttonNum, ContainerInput, Player) - same
+// argument order, just a new name.
+//
 // CONFIRMED (real source pasted by the user): screen.mouseClicked/
 // mouseReleased(double, double, int) were replaced by
 // mouseClicked(MouseButtonEvent, boolean doubleClick) and
@@ -44,7 +49,7 @@ public class ClickExecutor {
         
         try {
             if (slotId >= 0 && slotId < screen.getMenu().slots.size()) {
-                client.gameMode.handleInventoryMouseClick(
+                client.gameMode.handleContainerInput(
                     screen.getMenu().containerId,
                     slotId,
                     0, 

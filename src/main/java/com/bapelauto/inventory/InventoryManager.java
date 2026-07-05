@@ -7,9 +7,10 @@
 //   - screen.getMenu() -> screen.getMenu()
 //   - handler.containerId -> handler.containerId
 //   - slot.hasItem()/getStack() -> slot.hasItem()/getItem()
-//   - ClickType was renamed to ContainerInput (confirmed via real
-//     AbstractContainerMenu source); see click/ClickExecutor.java for
-//     details.
+//   - ClickType was renamed to ContainerInput, and
+//     handleInventoryMouseClick(...) was renamed to handleContainerInput(...)
+//     (confirmed via real Minecraft source); see click/ClickExecutor.java
+//     for details.
 // ============================================
 package com.bapelauto.inventory;
 
@@ -52,7 +53,7 @@ public class InventoryManager {
 
                     Slot slot = handler.getSlot(i);
                     if (slot.hasItem() && slot.mayPickup(client.player)) {
-                        client.gameMode.handleInventoryMouseClick(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
+                        client.gameMode.handleContainerInput(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
                         totalItemsMoved++;
                         nextStealSlotId = i + 1;
                         lastActionTime = currentTime;
@@ -69,7 +70,7 @@ public class InventoryManager {
 
                     Slot slot = handler.getSlot(i);
                     if (slot.hasItem()) {
-                        client.gameMode.handleInventoryMouseClick(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
+                        client.gameMode.handleContainerInput(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
                         totalItemsMoved++;
                         lastActionTime = currentTime;
                         return;
@@ -94,7 +95,7 @@ public class InventoryManager {
             for (int i = 0; i < containerEnd; i++) {
                 Slot slot = handler.getSlot(i);
                 if (slot.hasItem() && slot.mayPickup(client.player)) {
-                    client.gameMode.handleInventoryMouseClick(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
+                    client.gameMode.handleContainerInput(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
                     count++;
                 }
             }
@@ -119,7 +120,7 @@ public class InventoryManager {
             for (int i = playerStart; i < totalSlots; i++) {
                 Slot slot = handler.getSlot(i);
                 if (slot.hasItem()) {
-                    client.gameMode.handleInventoryMouseClick(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
+                    client.gameMode.handleContainerInput(handler.containerId, i, 0, ContainerInput.QUICK_MOVE, client.player);
                     count++;
                 }
             }

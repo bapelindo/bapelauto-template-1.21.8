@@ -14,9 +14,10 @@
 //   - player.sendMessage(...) -> ChatUtil.displayClientMessage(...)
 //     (LocalPlayer no longer has any send/display-message method at all;
 //     see util/ChatUtil.java for the real replacement and its caveats)
-//   - ClickType was renamed to ContainerInput (confirmed via real
-//     AbstractContainerMenu source); see click/ClickExecutor.java for
-//     details.
+//   - ClickType was renamed to ContainerInput, and
+//     handleInventoryMouseClick(...) was renamed to handleContainerInput(...)
+//     (confirmed via real Minecraft source); see click/ClickExecutor.java
+//     for details.
 // ============================================
 package com.bapelauto.slimefun;
 
@@ -133,18 +134,18 @@ public class SlimefunInputFeeder {
                 // Move item to input slot
                 try {
                     // Pick up item from player inventory
-                    client.gameMode.handleInventoryMouseClick(
+                    client.gameMode.handleContainerInput(
                         handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                     );
 
                     // Place in machine input slot
-                    client.gameMode.handleInventoryMouseClick(
+                    client.gameMode.handleContainerInput(
                         handler.containerId, targetSlot, 0, ContainerInput.PICKUP, client.player
                     );
 
                     // If still holding items, put them back
                     if (!client.player.containerMenu.getCarried().isEmpty()) {
-                        client.gameMode.handleInventoryMouseClick(
+                        client.gameMode.handleContainerInput(
                             handler.containerId, i, 0, ContainerInput.PICKUP, client.player
                         );
                     }
